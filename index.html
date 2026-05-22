@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0a0708" />
+    <meta name="theme-color" content="#15100a" />
     <meta
       name="description"
       content="Drakonian — a digital grimoire of the Nightside. The Qliphoth, their rulers, guided rites, and a private magical journal."
@@ -13,6 +13,16 @@
     <title>Drakonian — Grimoire of the Nightside</title>
   </head>
   <body>
+    <!-- Global SVG filter defs. #ink-rough gives the sigils a hand-drawn,
+         quill-inked wobble (referenced from CSS via filter: url(#ink-rough)). -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="ink-rough" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018 0.024" numOctaves="2" seed="7" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.8" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
     <div id="smoke-layer" aria-hidden="true"></div>
     <div id="app" data-route-shell></div>
     <noscript>This grimoire requires JavaScript to open its gates.</noscript>

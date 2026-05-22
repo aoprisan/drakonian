@@ -1,29 +1,49 @@
 /* =========================================================================
    Drakonian — Grimoire of the Nightside
-   Dark crimson / black ritual theme.
+   "Illuminated Codex" theme — a candlelit scriptorium rendered for the dark:
+   aged vellum ground, rubric (red ink) accents, gold-leaf gilding, blackletter
+   versals, wax-seal stamps, and hand-inked sigils.
    ========================================================================= */
 
 :root {
-  --bg: #0a0708;
-  --bg-soft: #120c0e;
-  --panel: #160e11;
-  --panel-edge: #2a1a1f;
-  --crimson: #6b0f1a;
-  --crimson-bright: #8b0000;
-  --ember: #d94a2a;
-  --ash: #c9bfb5;
-  --ash-dim: #8a8077;
-  --bone: #e8e0d4;
-  --gold: #b08d57;
-  --gold-bright: #caa24a;
-  --accent: var(--crimson);
+  /* --- Aged dark vellum: warm umber ground, candlelit --- */
+  --void: #0c0905;
+  --vellum: #15100a;
+  --vellum-soft: #1d160d;
+  --panel: #221a0f;
+  --panel-deep: #19120a;
+  --panel-edge: #3c2c16;
 
-  --font-display: 'Cinzel', 'Times New Roman', serif;
-  --font-body: 'EB Garamond', Georgia, serif;
+  /* --- Rubric: the scribe's red ink (minium / vermilion) --- */
+  --rubric: #8c1c12;
+  --rubric-deep: #561009;
+  --rubric-bright: #b6371f;
 
-  --maxw: 56rem;
-  --radius: 4px;
-  --shadow-glow: 0 0 24px -6px var(--crimson);
+  /* --- Gilt: gold leaf --- */
+  --gilt: #c19a45;
+  --gilt-bright: #ecc868;
+  --gilt-deep: #7c5c25;
+
+  /* --- Ink on vellum --- */
+  --ink: #efe3c6; /* brightest cream — titles, strong text */
+  --ink-body: #d8c8a4; /* body ink — warm sepia cream */
+  --ink-dim: #9d8c69; /* faded gloss / margin notes */
+
+  /* Per-shell accent (set inline from each Qlipha's colours). */
+  --accent: var(--rubric);
+
+  --font-incipit: 'UnifrakturCook', 'UnifrakturMaguntia', 'Luminari', serif;
+  --font-display: 'Cinzel Decorative', 'Cinzel', 'Trajan Pro', serif;
+  --font-ui: 'Cinzel', 'Trajan Pro', 'Times New Roman', serif;
+  --font-body: 'EB Garamond', 'Cardo', Georgia, serif;
+
+  --maxw: 54rem;
+  --radius: 3px;
+  --gild-glow: 0 0 22px -8px var(--gilt);
+  --rubric-glow: 0 0 22px -6px var(--rubric);
+
+  /* A reusable parchment grain (grayscale fractal noise) for overlays. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 
 *,
@@ -40,51 +60,74 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(1200px 800px at 50% -10%, #1a0c10 0%, transparent 60%),
-    radial-gradient(900px 700px at 50% 120%, #160a14 0%, transparent 55%),
-    var(--bg);
-  color: var(--ash);
+    radial-gradient(1100px 720px at 50% -8%, rgba(120, 70, 24, 0.22) 0%, transparent 58%),
+    radial-gradient(900px 900px at 78% 18%, rgba(90, 16, 9, 0.16) 0%, transparent 55%),
+    radial-gradient(1000px 800px at 50% 118%, rgba(40, 22, 8, 0.5) 0%, transparent 60%),
+    var(--vellum);
+  background-attachment: fixed;
+  color: var(--ink-body);
   font-family: var(--font-body);
-  font-size: 1.15rem;
-  line-height: 1.6;
-  letter-spacing: 0.01em;
+  font-size: 1.18rem;
+  line-height: 1.62;
+  letter-spacing: 0.005em;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-/* Vignette + subtle grain over the whole page. */
+/* Parchment grain — fine fibrous tooth across the whole leaf. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 200px 200px;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+/* Candlelit vignette — warm at the centre, smoke-dark at the deckle edges. */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 5;
+  z-index: 6;
   background:
-    radial-gradient(120% 120% at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.55) 100%);
+    radial-gradient(125% 115% at 50% 36%, transparent 50%, rgba(8, 5, 2, 0.62) 100%);
   mix-blend-mode: multiply;
+  animation: candle-flicker 7s ease-in-out infinite;
+}
+
+@keyframes candle-flicker {
+  0%, 100% { opacity: 0.92; }
+  45% { opacity: 1; }
+  62% { opacity: 0.86; }
+  78% { opacity: 0.97; }
 }
 
 a {
-  color: var(--gold-bright);
+  color: var(--gilt-bright);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 a:hover {
-  color: var(--ember);
+  color: var(--rubric-bright);
 }
 
 h1,
 h2,
 h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.15;
-  color: var(--bone);
+  letter-spacing: 0.05em;
+  line-height: 1.18;
+  color: var(--ink);
 }
 
-/* --- Smoke layer --- */
+/* --- Drifting dust layer (canvas) --- */
 #smoke-layer {
   position: fixed;
   inset: 0;
@@ -98,16 +141,18 @@ h3 {
   height: 100%;
 }
 
-/* --- App shell --- */
+/* --- App shell: the open leaf --- */
 #app {
   position: relative;
   z-index: 2;
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 5rem;
+  padding: 2rem 1.4rem 5rem;
 }
 
-/* --- Top navigation --- */
+/* =========================================================================
+   Top navigation — the illuminated header band
+   ========================================================================= */
 .topnav {
   position: sticky;
   top: 0;
@@ -116,57 +161,77 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(180deg, rgba(10, 7, 8, 0.95), rgba(10, 7, 8, 0.7));
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--panel-edge);
+  padding: 0.7rem 1.3rem;
+  background: linear-gradient(180deg, rgba(21, 15, 9, 0.97), rgba(21, 15, 9, 0.74));
+  backdrop-filter: blur(7px);
+  border-bottom: 1px solid var(--gilt-deep);
+  box-shadow: 0 1px 0 rgba(193, 154, 69, 0.28), 0 10px 24px -18px #000;
 }
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--bone);
+  gap: 0.6rem;
+  color: var(--ink);
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  font-size: 1.05rem;
 }
 .brand-mark {
-  color: var(--crimson-bright);
-  font-size: 1.3rem;
-  text-shadow: 0 0 10px var(--crimson);
+  display: inline-grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, var(--rubric-bright), var(--rubric) 55%, var(--rubric-deep));
+  color: var(--gilt-bright);
+  font-size: 0.95rem;
+  border: 1px solid var(--gilt-deep);
+  box-shadow: inset 0 1px 0 rgba(255, 210, 160, 0.25), inset 0 -3px 6px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
+  gap: 1.1rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 .nav-links a {
-  color: var(--ash-dim);
+  color: var(--ink-dim);
+  position: relative;
+  padding-bottom: 2px;
 }
 .nav-links a.active,
 .nav-links a:hover {
-  color: var(--gold-bright);
+  color: var(--gilt-bright);
+}
+.nav-links a.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gilt), transparent);
 }
 .candle-toggle {
-  background: none;
+  background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--panel-edge);
-  color: var(--ash);
+  color: var(--ink-body);
   border-radius: var(--radius);
-  padding: 0.25rem 0.5rem;
+  padding: 0.28rem 0.55rem;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
+  transition: all 0.2s ease;
 }
 .candle-toggle[aria-pressed='true'] {
-  color: var(--gold-bright);
-  border-color: var(--gold);
-  box-shadow: 0 0 12px -4px var(--gold);
+  color: var(--gilt-bright);
+  border-color: var(--gilt);
+  box-shadow: var(--gild-glow);
 }
 
 /* --- View transitions --- */
@@ -175,125 +240,156 @@ h3 {
   transform: translateY(8px);
 }
 #app {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .view-leaving {
   opacity: 0;
 }
 
+/* =========================================================================
+   Shared display elements
+   ========================================================================= */
 .display-title {
-  font-size: clamp(2rem, 6vw, 3.4rem);
-  margin: 0 0 0.4rem;
-  background: linear-gradient(180deg, var(--bone), var(--gold));
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 6vw, 3.5rem);
+  letter-spacing: 0.015em;
+  margin: 0 0 0.35rem;
+  background: linear-gradient(176deg, var(--ink) 8%, var(--gilt-bright) 52%, var(--gilt-deep) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 30px rgba(107, 15, 26, 0.4);
+  text-shadow: 0 1px 18px rgba(193, 154, 69, 0.16);
+}
+/* Manuscript rule with a central gold lozenge, under each grand title. */
+.display-title::after {
+  content: '';
+  display: block;
+  width: min(15rem, 64%);
+  height: 12px;
+  margin: 0.7rem auto 0.1rem;
+  background:
+    radial-gradient(circle at 50% 50%, var(--gilt-bright) 0 2.4px, transparent 3px) 50% / 100% no-repeat,
+    linear-gradient(90deg, transparent, var(--gilt-deep) 22%, var(--gilt) 50%, var(--gilt-deep) 78%, transparent) 50% /
+      100% 1px no-repeat;
 }
 .subtitle {
-  color: var(--ash-dim);
+  color: var(--ink-dim);
   font-style: italic;
+  font-size: 1.12rem;
   margin-top: 0;
 }
 .back-link {
   display: inline-block;
-  margin-bottom: 1rem;
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  margin-bottom: 1.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
+}
+.back-link:hover {
+  color: var(--gilt-bright);
 }
 
 /* --- Buttons --- */
 .primary-btn,
 .ghost-btn {
-  font-family: var(--font-display);
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 0.7rem 1.3rem;
+  padding: 0.72rem 1.4rem;
   border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.22s ease;
 }
+/* Primary: a pressed wax stamp, lettered in gilt. */
 .primary-btn {
-  background: linear-gradient(180deg, var(--crimson), #4a0a12);
-  color: var(--bone);
-  border: 1px solid var(--crimson-bright);
-  box-shadow: var(--shadow-glow);
+  background: linear-gradient(180deg, var(--rubric-bright), var(--rubric) 55%, var(--rubric-deep));
+  color: var(--gilt-bright);
+  border: 1px solid var(--gilt-deep);
+  box-shadow: inset 0 1px 0 rgba(255, 205, 160, 0.22), inset 0 -4px 9px rgba(0, 0, 0, 0.45),
+    0 3px 12px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
 }
 .primary-btn:hover {
-  background: linear-gradient(180deg, var(--crimson-bright), var(--crimson));
-  box-shadow: 0 0 28px -4px var(--crimson-bright);
+  filter: brightness(1.08);
+  border-color: var(--gilt);
+  box-shadow: inset 0 1px 0 rgba(255, 205, 160, 0.3), inset 0 -4px 9px rgba(0, 0, 0, 0.4),
+    var(--gild-glow);
 }
+/* Ghost: a gilt-ruled plaque. */
 .ghost-btn {
   background: transparent;
-  color: var(--ash);
-  border: 1px solid var(--panel-edge);
+  color: var(--ink-body);
+  border: 1px solid var(--gilt-deep);
   text-decoration: none;
   display: inline-block;
 }
 .ghost-btn:hover {
-  border-color: var(--gold);
-  color: var(--gold-bright);
+  border-color: var(--gilt);
+  color: var(--gilt-bright);
+  box-shadow: var(--gild-glow);
 }
 button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .empty {
   text-align: center;
   padding: 3rem 0;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
+  font-style: italic;
 }
 
 /* =========================================================================
-   Sigils
+   Sigils — hand-inked glyphs
    ========================================================================= */
 .sigil {
   overflow: visible;
+  filter: url(#ink-rough);
 }
 .sigil circle,
 .sigil line,
 .sigil polygon,
 .sigil path {
   fill: none;
-  stroke: var(--gold);
+  stroke: var(--gilt);
   stroke-width: 0.8;
   vector-effect: non-scaling-stroke;
 }
 .sigil-ring-outer {
-  stroke: var(--crimson);
-  stroke-width: 1.2;
-  filter: drop-shadow(0 0 4px var(--crimson));
+  stroke: var(--rubric);
+  stroke-width: 1.3;
+  filter: drop-shadow(0 0 3px var(--rubric));
 }
 .sigil-ring-inner {
-  stroke: rgba(176, 141, 87, 0.5);
+  stroke: rgba(193, 154, 69, 0.5);
 }
 .sigil-line {
-  stroke: var(--gold-bright);
+  stroke: var(--gilt-bright);
   stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 3px var(--gold));
+  filter: drop-shadow(0 0 2px var(--gilt));
   stroke-dasharray: 400;
   stroke-dashoffset: 400;
-  animation: sigil-draw 2.4s ease forwards, sigil-breathe 5s ease-in-out 2.4s infinite;
+  animation: sigil-draw 2.6s ease forwards, sigil-breathe 5.5s ease-in-out 2.6s infinite;
 }
 .sigil-core {
-  stroke: var(--ember);
-  opacity: 0.8;
+  stroke: var(--rubric-bright);
+  opacity: 0.78;
 }
 .sigil-eye {
-  fill: var(--ember);
+  fill: var(--gilt-bright);
   stroke: none;
-  filter: drop-shadow(0 0 5px var(--ember));
+  filter: drop-shadow(0 0 4px var(--gilt));
   animation: sigil-breathe 4s ease-in-out infinite;
 }
 .sigil-spokes line {
-  stroke: rgba(176, 141, 87, 0.35);
+  stroke: rgba(193, 154, 69, 0.32);
 }
 
 @keyframes sigil-draw {
@@ -304,21 +400,21 @@ button:disabled {
 @keyframes sigil-breathe {
   0%,
   100% {
-    filter: drop-shadow(0 0 3px var(--gold));
+    filter: drop-shadow(0 0 2px var(--gilt));
     opacity: 0.85;
   }
   50% {
-    filter: drop-shadow(0 0 9px var(--gold-bright));
+    filter: drop-shadow(0 0 8px var(--gilt-bright));
     opacity: 1;
   }
 }
 
 /* =========================================================================
-   Tree view
+   Tree view — the inked diagram of the Nightside
    ========================================================================= */
 .tree-header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
 }
 .tree-stage {
   display: flex;
@@ -328,11 +424,11 @@ button:disabled {
 .tree-svg {
   width: min(100%, 30rem);
   height: auto;
-  filter: drop-shadow(0 0 30px rgba(107, 15, 26, 0.25));
+  filter: drop-shadow(0 0 34px rgba(140, 28, 18, 0.28));
 }
 .tree-spine {
   fill: none;
-  stroke: var(--crimson);
+  stroke: var(--rubric);
   stroke-width: 0.6;
   opacity: 0.25;
   stroke-dasharray: 2 3;
@@ -341,14 +437,14 @@ button:disabled {
 @keyframes spine-pulse {
   0%,
   100% {
-    opacity: 0.15;
+    opacity: 0.14;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.42;
   }
 }
 .tree-path {
-  stroke: rgba(176, 141, 87, 0.28);
+  stroke: rgba(193, 154, 69, 0.3);
   stroke-width: 0.4;
   vector-effect: non-scaling-stroke;
 }
@@ -356,116 +452,158 @@ button:disabled {
   cursor: pointer;
 }
 .tree-node-halo {
-  fill: var(--crimson);
+  fill: var(--rubric);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 .tree-node-circle {
-  stroke: var(--gold);
-  stroke-width: 0.6;
+  stroke: var(--gilt);
+  stroke-width: 0.7;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 3px rgba(107, 15, 26, 0.7));
+  filter: drop-shadow(0 0 3px rgba(140, 28, 18, 0.7));
   animation: node-breathe 4s ease-in-out infinite;
   animation-delay: var(--node-delay, 0s);
 }
 .tree-node:hover .tree-node-halo,
 .tree-node:focus .tree-node-halo {
-  opacity: 0.35;
+  opacity: 0.4;
 }
 .tree-node:focus {
   outline: none;
 }
 .tree-node:focus .tree-node-circle {
-  stroke: var(--gold-bright);
-  stroke-width: 1.2;
+  stroke: var(--gilt-bright);
+  stroke-width: 1.3;
 }
 .tree-node-num {
-  fill: var(--bone);
+  fill: var(--ink);
   font-family: var(--font-display);
   font-size: 4px;
   font-weight: 700;
   pointer-events: none;
 }
 .tree-node-label {
-  fill: var(--ash);
-  font-family: var(--font-display);
+  fill: var(--ink-body);
+  font-family: var(--font-ui);
   font-size: 3.4px;
   letter-spacing: 0.04em;
   pointer-events: none;
 }
 .tree-node:hover .tree-node-label {
-  fill: var(--gold-bright);
+  fill: var(--gilt-bright);
 }
 @keyframes node-breathe {
   0%,
   100% {
-    filter: drop-shadow(0 0 2px rgba(107, 15, 26, 0.6));
+    filter: drop-shadow(0 0 2px rgba(140, 28, 18, 0.6));
   }
   50% {
-    filter: drop-shadow(0 0 7px rgba(217, 74, 42, 0.7));
+    filter: drop-shadow(0 0 7px rgba(193, 154, 69, 0.7));
   }
 }
 .tree-hint {
   text-align: center;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
   font-style: italic;
   margin-top: 1rem;
 }
+.tree-hint::before,
+.tree-hint::after {
+  content: '❧';
+  color: var(--gilt-deep);
+  font-style: normal;
+  margin: 0 0.6rem;
+}
+.tree-hint::after {
+  display: inline-block;
+  transform: scaleX(-1);
+}
 
+/* The index of shells, read like a contents leaf. */
 .ascent-list {
   list-style: none;
   padding: 0;
-  margin: 2rem 0 0;
+  margin: 2.2rem 0 0;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 .ascent-list a {
   display: grid;
-  grid-template-columns: 2rem 1fr;
+  grid-template-columns: 2.4rem 1fr;
   grid-template-areas: 'order name' 'order epithet';
-  gap: 0 0.75rem;
-  padding: 0.6rem 0.85rem;
-  background: var(--panel);
+  gap: 0 0.85rem;
+  align-items: center;
+  padding: 0.6rem 0.95rem;
+  background: linear-gradient(180deg, var(--panel), var(--panel-deep));
   border: 1px solid var(--panel-edge);
-  border-left: 3px solid var(--crimson);
+  border-left: 3px solid var(--rubric);
   border-radius: var(--radius);
-  color: var(--ash);
+  color: var(--ink-body);
+  transition: all 0.2s ease;
 }
 .ascent-list a:hover {
-  border-left-color: var(--gold-bright);
-  background: var(--bg-soft);
+  border-left-color: var(--gilt-bright);
+  border-color: var(--gilt-deep);
+  background: linear-gradient(180deg, var(--vellum-soft), var(--panel));
+  box-shadow: var(--gild-glow);
 }
 .ascent-order {
   grid-area: order;
   align-self: center;
   font-family: var(--font-display);
-  font-size: 1.2rem;
-  color: var(--crimson-bright);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--rubric-bright);
   text-align: center;
+  text-shadow: 0 0 12px rgba(182, 55, 31, 0.4);
 }
 .ascent-name {
   grid-area: name;
-  font-family: var(--font-display);
-  letter-spacing: 0.06em;
-  color: var(--bone);
+  font-family: var(--font-ui);
+  letter-spacing: 0.07em;
+  color: var(--ink);
 }
 .ascent-epithet {
   grid-area: epithet;
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-style: italic;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
 }
 
 /* =========================================================================
-   Qlipha (codex) view
+   Qlipha (codex) view — the illuminated leaf
    ========================================================================= */
 .qlipha {
-  border: 1px solid var(--panel-edge);
+  position: relative;
+  border: 1px solid var(--gilt-deep);
   border-top: 3px solid var(--accent);
-  background: linear-gradient(180deg, var(--panel), var(--bg-soft));
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(120, 70, 24, 0.1), transparent 60%),
+    linear-gradient(180deg, var(--panel), var(--panel-deep));
   border-radius: var(--radius);
-  padding: 2rem 1.5rem;
-  box-shadow: 0 10px 40px -20px #000;
+  padding: 2.4rem 1.9rem 2.1rem;
+  box-shadow: inset 0 0 0 4px var(--vellum), inset 0 0 0 5px var(--gilt-deep),
+    0 18px 50px -28px #000;
+}
+/* Corner fleurons sitting on the gilt rule. */
+.qlipha::before,
+.qlipha::after {
+  content: '❧';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gilt-bright);
+  font-size: 1.3rem;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(193, 154, 69, 0.4);
+  pointer-events: none;
+}
+.qlipha::before {
+  top: -0.72rem;
+}
+.qlipha::after {
+  bottom: -0.78rem;
+  transform: translateX(-50%) rotate(180deg);
 }
 .qlipha-sigil {
   display: flex;
@@ -476,82 +614,131 @@ button:disabled {
   text-align: center;
 }
 .qlipha-order {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  letter-spacing: 0.16em;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ash-dim);
+  color: var(--rubric-bright);
 }
 .qlipha-translation {
   font-style: italic;
-  color: var(--gold);
+  font-size: 1.18rem;
+  color: var(--gilt);
 }
+
+/* The table of correspondences, ruled in gilt. */
 .correspondences {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem 1.5rem;
-  margin: 1.75rem 0;
-  padding: 1.25rem;
-  background: rgba(0, 0, 0, 0.25);
+  gap: 0.1rem 1.6rem;
+  margin: 1.9rem 0;
+  padding: 1.3rem 1.4rem 1.1rem;
+  background: rgba(0, 0, 0, 0.28);
   border-radius: var(--radius);
-  border: 1px solid var(--panel-edge);
+  border: 1px solid var(--gilt-deep);
+  box-shadow: inset 0 0 0 3px var(--panel-deep), inset 0 0 0 4px rgba(124, 92, 37, 0.5);
+}
+.correspondences::before {
+  content: '❧  Correspondences  ❧';
+  grid-column: 1 / -1;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gilt);
+  margin-bottom: 0.85rem;
 }
 .correspondences div {
   margin: 0;
+  padding: 0.42rem 0;
+  border-bottom: 1px solid rgba(124, 92, 37, 0.22);
 }
 .correspondences dt {
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ash-dim);
-  margin-bottom: 0.15rem;
+  color: var(--rubric-bright);
+  margin-bottom: 0.18rem;
 }
 .correspondences dd {
   margin: 0;
-  color: var(--bone);
+  color: var(--ink);
 }
 .swatches {
   display: inline-flex;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 .swatches i {
   width: 1.1rem;
   height: 1.1rem;
   border-radius: 50%;
-  border: 1px solid var(--panel-edge);
+  border: 1px solid var(--gilt-deep);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5);
   display: inline-block;
 }
+
+/* The body of the leaf — a justified column with an illuminated versal. */
 .qlipha-desc {
-  font-size: 1.2rem;
-  line-height: 1.75;
+  font-size: 1.22rem;
+  line-height: 1.8;
+  text-align: justify;
+  hyphens: auto;
 }
+.qlipha-desc::first-letter,
+.prose > p:first-of-type::first-letter {
+  font-family: var(--font-incipit);
+  font-weight: 700;
+  font-size: 4em;
+  line-height: 0.66;
+  float: left;
+  margin: 0.06em 0.14em 0 0;
+  padding: 0.12em 0.16em 0.04em;
+  color: var(--gilt-bright);
+  background: linear-gradient(158deg, var(--rubric), var(--rubric-deep));
+  border: 1px solid var(--gilt-deep);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 205, 160, 0.2), 0 3px 10px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45), 0 0 12px rgba(236, 200, 104, 0.35);
+}
+
 .enter-rite {
   display: inline-block;
-  margin-top: 1rem;
-  font-family: var(--font-display);
-  letter-spacing: 0.1em;
+  margin-top: 1.4rem;
+  font-family: var(--font-ui);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  font-size: 0.9rem;
-  padding: 0.8rem 1.4rem;
-  border: 1px solid var(--crimson-bright);
+  font-size: 0.84rem;
+  padding: 0.85rem 1.5rem;
+  border: 1px solid var(--gilt-deep);
   border-radius: var(--radius);
-  color: var(--bone);
-  background: linear-gradient(180deg, rgba(107, 15, 26, 0.4), transparent);
+  color: var(--gilt-bright);
+  background: linear-gradient(180deg, rgba(140, 28, 18, 0.42), rgba(86, 16, 9, 0.2));
+  box-shadow: inset 0 0 0 2px rgba(124, 92, 37, 0.35);
+  transition: all 0.22s ease;
 }
 .enter-rite:hover {
-  background: var(--crimson);
-  color: var(--bone);
-  box-shadow: var(--shadow-glow);
+  background: linear-gradient(180deg, var(--rubric), var(--rubric-deep));
+  color: var(--gilt-bright);
+  border-color: var(--gilt);
+  box-shadow: var(--rubric-glow), inset 0 0 0 2px rgba(124, 92, 37, 0.5);
 }
 .qlipha-nav {
   display: flex;
   justify-content: space-between;
-  margin-top: 1.5rem;
-  font-family: var(--font-display);
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
+  gap: 1rem;
+  margin-top: 1.6rem;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+.qlipha-nav a {
+  color: var(--ink-dim);
+}
+.qlipha-nav a:hover {
+  color: var(--gilt-bright);
 }
 
 /* =========================================================================
@@ -567,42 +754,45 @@ button:disabled {
 }
 .rite-kicker,
 .rite-step-type {
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--crimson-bright);
+  color: var(--rubric-bright);
 }
 .rite-intent {
   font-style: italic;
-  color: var(--gold);
-  font-size: 1.15rem;
+  color: var(--gilt-bright);
+  font-size: 1.22rem;
 }
 .rite-blurb {
-  color: var(--ash);
+  color: var(--ink-body);
 }
 .rite-controls-intro {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  margin: 2rem 0 1rem;
+  margin: 2.2rem 0 1rem;
 }
 .drone-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  gap: 0.55rem;
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
   cursor: pointer;
 }
+.drone-toggle input {
+  accent-color: var(--rubric);
+}
 .rite-warn {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-style: italic;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
 }
 
 .rite-step {
@@ -614,45 +804,47 @@ button:disabled {
   display: flex;
   justify-content: center;
   gap: 0.4rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.6rem;
 }
 .rite-progress span {
-  width: 1.5rem;
+  width: 1.6rem;
   height: 3px;
   background: var(--panel-edge);
   border-radius: 2px;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 .rite-progress span.on {
-  background: var(--crimson-bright);
-  box-shadow: 0 0 8px -1px var(--crimson);
+  background: linear-gradient(90deg, var(--gilt-deep), var(--gilt-bright));
+  box-shadow: 0 0 8px -1px var(--gilt);
 }
 .rite-step-title {
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
   margin: 0.5rem 0 1rem;
+  color: var(--ink);
 }
 .rite-step-text {
-  font-size: 1.3rem;
+  font-size: 1.32rem;
   line-height: 1.85;
-  color: var(--bone);
+  color: var(--ink);
 }
 .rite-step-invocation .rite-step-text {
   font-style: italic;
-  color: var(--gold-bright);
+  color: var(--gilt-bright);
 }
 .rite-pacer-slot {
   display: flex;
   justify-content: center;
-  margin: 2rem 0;
+  margin: 2.2rem 0;
 }
 .rite-controls {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 1.6rem;
 }
 
-/* Breath pacer */
+/* Breath pacer — a candle-flame orb. */
 .pacer {
   display: flex;
   flex-direction: column;
@@ -665,23 +857,24 @@ button:disabled {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid var(--panel-edge);
+  border: 1px solid var(--gilt-deep);
+  box-shadow: inset 0 0 22px -6px rgba(193, 154, 69, 0.3);
 }
 .pacer-orb {
   width: 7rem;
   height: 7rem;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, var(--ember), var(--crimson) 60%, #2a0508);
-  box-shadow: 0 0 40px -6px var(--crimson-bright);
+  background: radial-gradient(circle at 50% 38%, var(--gilt-bright), var(--rubric-bright) 52%, var(--rubric-deep) 100%);
+  box-shadow: 0 0 44px -6px var(--rubric-bright), 0 0 18px -2px var(--gilt);
   transform: scale(0.45);
   transition: transform 0.12s linear;
 }
 .pacer-phase {
-  font-family: var(--font-display);
-  letter-spacing: 0.16em;
+  font-family: var(--font-ui);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  font-size: 0.85rem;
-  color: var(--gold-bright);
+  font-size: 0.84rem;
+  color: var(--gilt-bright);
 }
 
 /* Countdown ring */
@@ -700,10 +893,10 @@ button:disabled {
 }
 .countdown-progress {
   fill: none;
-  stroke: var(--crimson-bright);
+  stroke: var(--gilt-bright);
   stroke-width: 4;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 5px var(--crimson));
+  filter: drop-shadow(0 0 5px var(--gilt));
   transition: stroke-dashoffset 0.2s linear;
 }
 .countdown-time {
@@ -713,20 +906,40 @@ button:disabled {
   place-items: center;
   font-family: var(--font-display);
   font-size: 1.6rem;
-  color: var(--bone);
+  color: var(--ink);
 }
 
-/* Completion */
+/* Completion — the working is sealed in wax. */
 .rite-complete {
   text-align: center;
   max-width: 34rem;
   margin: 0 auto;
 }
 .rite-seal {
-  font-size: 4rem;
-  color: var(--crimson-bright);
-  text-shadow: 0 0 30px var(--crimson);
-  animation: sigil-breathe 4s ease-in-out infinite;
+  width: 6.2rem;
+  height: 6.2rem;
+  margin: 0 auto 0.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 2.9rem;
+  color: #320707;
+  background: radial-gradient(circle at 38% 30%, var(--rubric-bright), var(--rubric) 48%, var(--rubric-deep) 100%);
+  border: 1px solid var(--rubric-deep);
+  box-shadow: inset 0 2px 5px rgba(255, 170, 130, 0.3), inset 0 -7px 14px rgba(0, 0, 0, 0.55),
+    0 5px 16px rgba(0, 0, 0, 0.6), var(--rubric-glow);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(255, 180, 140, 0.25);
+  animation: seal-glow 5s ease-in-out infinite;
+}
+@keyframes seal-glow {
+  0%, 100% {
+    box-shadow: inset 0 2px 5px rgba(255, 170, 130, 0.3), inset 0 -7px 14px rgba(0, 0, 0, 0.55),
+      0 5px 16px rgba(0, 0, 0, 0.6), 0 0 18px -8px var(--rubric);
+  }
+  50% {
+    box-shadow: inset 0 2px 5px rgba(255, 170, 130, 0.3), inset 0 -7px 14px rgba(0, 0, 0, 0.55),
+      0 5px 16px rgba(0, 0, 0, 0.6), 0 0 30px -4px var(--rubric-bright);
+  }
 }
 .rite-record {
   display: flex;
@@ -743,51 +956,62 @@ button:disabled {
 }
 .rite-saved {
   margin-top: 1rem;
-  color: var(--gold-bright);
+  color: var(--gilt-bright);
 }
 
 /* =========================================================================
-   Forms (shared)
+   Forms (shared) — inkwell fields
    ========================================================================= */
 input[type='text'],
 textarea,
 select {
   width: 100%;
   font-family: var(--font-body);
-  font-size: 1.05rem;
-  color: var(--bone);
-  background: rgba(0, 0, 0, 0.35);
+  font-size: 1.06rem;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.34);
   border: 1px solid var(--panel-edge);
   border-radius: var(--radius);
-  padding: 0.65rem 0.8rem;
+  padding: 0.68rem 0.82rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+input[type='text']::placeholder,
+textarea::placeholder {
+  color: var(--ink-dim);
+  font-style: italic;
 }
 input[type='text']:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: var(--crimson-bright);
-  box-shadow: 0 0 0 2px rgba(107, 15, 26, 0.3);
+  border-color: var(--gilt);
+  box-shadow: 0 0 0 2px rgba(124, 92, 37, 0.35), var(--gild-glow);
 }
 textarea {
   resize: vertical;
 }
 
 /* =========================================================================
-   Journal view
+   Journal view — the Black Book
    ========================================================================= */
 .journal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-top: 1.5rem;
+  gap: 2.2rem;
+  margin-top: 1.6rem;
 }
 .section-title {
-  font-size: 1.1rem;
-  letter-spacing: 0.1em;
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--gold);
-  border-bottom: 1px solid var(--panel-edge);
+  color: var(--gilt);
+  border-bottom: 1px solid var(--gilt-deep);
   padding-bottom: 0.5rem;
+}
+.section-title::before {
+  content: '❧ ';
+  color: var(--rubric-bright);
 }
 
 .ladder {
@@ -800,68 +1024,81 @@ textarea {
 .rung {
   display: grid;
   grid-template-columns: 3.2rem 1fr;
-  gap: 0.75rem;
-  padding: 0.6rem;
-  background: var(--panel);
+  gap: 0.8rem;
+  padding: 0.62rem;
+  background: linear-gradient(180deg, var(--panel), var(--panel-deep));
   border: 1px solid var(--panel-edge);
   border-radius: var(--radius);
   align-items: start;
+  transition: all 0.2s ease;
 }
 .rung.current {
-  border-color: var(--gold);
-  box-shadow: 0 0 14px -6px var(--gold);
+  border-color: var(--gilt);
+  box-shadow: var(--gild-glow);
 }
+/* The mark of attainment — an unstamped, then wax-stamped, seal. */
 .rung-mark {
   height: 3.2rem;
   border-radius: var(--radius);
-  border: 1px solid var(--panel-edge);
-  background: rgba(0, 0, 0, 0.3);
-  color: var(--ash-dim);
+  border: 1px dashed var(--panel-edge);
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--ink-dim);
   cursor: pointer;
   font-family: var(--font-display);
+  font-weight: 700;
+  transition: all 0.22s ease;
+}
+.rung-mark:hover {
+  border-color: var(--gilt-deep);
+  color: var(--ink-body);
 }
 .rung.attained .rung-mark {
-  background: linear-gradient(180deg, var(--crimson), #3a060c);
-  border-color: var(--crimson-bright);
-  color: var(--bone);
-  box-shadow: var(--shadow-glow);
+  background: radial-gradient(circle at 40% 32%, var(--rubric-bright), var(--rubric) 55%, var(--rubric-deep));
+  border: 1px solid var(--rubric-deep);
+  color: var(--gilt-bright);
+  box-shadow: inset 0 1px 0 rgba(255, 190, 150, 0.25), inset 0 -4px 8px rgba(0, 0, 0, 0.5),
+    var(--rubric-glow);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
 }
 .rung-label {
   font-size: 1.05rem;
 }
 .rung-title {
-  font-family: var(--font-display);
-  color: var(--bone);
-  letter-spacing: 0.04em;
+  font-family: var(--font-ui);
+  color: var(--ink);
+  letter-spacing: 0.05em;
 }
 .rung-theme {
-  margin: 0.2rem 0 0.4rem;
+  margin: 0.22rem 0 0.4rem;
   font-size: 0.92rem;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
   font-style: italic;
 }
 .rung details summary {
   cursor: pointer;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gold);
-  font-family: var(--font-display);
+  color: var(--gilt);
+  font-family: var(--font-ui);
 }
 .rung-current {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin: 0.5rem 0;
-  font-size: 0.85rem;
-  color: var(--ash);
+  gap: 0.45rem;
+  margin: 0.55rem 0;
+  font-size: 0.86rem;
+  color: var(--ink-body);
+}
+.rung-current input {
+  accent-color: var(--rubric);
 }
 
 .entry-form {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.6rem;
 }
 .entry-form-row {
   display: grid;
@@ -877,34 +1114,35 @@ textarea {
   gap: 0.75rem;
 }
 .entries-empty {
-  color: var(--ash-dim);
+  color: var(--ink-dim);
   font-style: italic;
 }
+/* Each entry is a slip tipped into the book, ruled by its kind. */
 .entry {
-  padding: 0.85rem 1rem;
-  background: var(--panel);
+  padding: 0.9rem 1.05rem;
+  background: linear-gradient(180deg, var(--panel), var(--panel-deep));
   border: 1px solid var(--panel-edge);
-  border-left: 3px solid var(--crimson);
+  border-left: 3px solid var(--rubric);
   border-radius: var(--radius);
 }
 .entry-dream {
-  border-left-color: #3a2a6b;
+  border-left-color: #3a5180; /* faded blue ink */
 }
 .entry-note {
-  border-left-color: var(--gold);
+  border-left-color: var(--gilt);
 }
 .entry-head {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   font-size: 0.78rem;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
 }
 .entry-type {
-  font-family: var(--font-display);
-  letter-spacing: 0.1em;
+  font-family: var(--font-ui);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gilt);
 }
 .entry-head time {
   flex: 1;
@@ -912,89 +1150,104 @@ textarea {
 .entry-del {
   background: none;
   border: none;
-  color: var(--ash-dim);
+  color: var(--ink-dim);
   cursor: pointer;
   font-size: 0.9rem;
 }
 .entry-del:hover {
-  color: var(--ember);
+  color: var(--rubric-bright);
 }
 .entry-title {
-  margin: 0.35rem 0 0.2rem;
-  font-size: 1.2rem;
+  margin: 0.38rem 0 0.2rem;
+  font-size: 1.22rem;
 }
 .entry-tag {
-  font-size: 0.78rem;
-  font-family: var(--font-display);
-  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  font-family: var(--font-ui);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 .entry-body {
-  margin: 0.4rem 0 0;
+  margin: 0.45rem 0 0;
   white-space: pre-wrap;
+  color: var(--ink-body);
 }
 
 .journal-tools {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-top: 2.5rem;
+  margin-top: 2.6rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--panel-edge);
+  border-top: 1px solid var(--gilt-deep);
   flex-wrap: wrap;
 }
 .import-label {
   cursor: pointer;
 }
 .import-msg {
-  color: var(--gold-bright);
+  color: var(--gilt-bright);
   font-size: 0.9rem;
 }
 
 /* =========================================================================
-   About / prose
+   About / prose — the colophon pages
    ========================================================================= */
 .prose {
   max-width: 42rem;
 }
 .prose h2 {
-  font-size: 1.4rem;
-  color: var(--gold);
-  margin-top: 2rem;
-  letter-spacing: 0.06em;
+  font-family: var(--font-ui);
+  font-size: 1.42rem;
+  color: var(--gilt);
+  margin-top: 2.2rem;
+  letter-spacing: 0.07em;
+}
+.prose h2::before {
+  content: '❧ ';
+  color: var(--rubric-bright);
 }
 .prose p,
 .prose li {
-  font-size: 1.18rem;
+  font-size: 1.2rem;
   line-height: 1.8;
 }
+.prose > p:first-of-type {
+  text-align: justify;
+  hyphens: auto;
+}
 .prose strong {
-  color: var(--bone);
+  color: var(--ink);
+}
+.prose em {
+  color: var(--gilt);
 }
 .install-hint {
-  margin-top: 2rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--panel-edge);
-  border-left: 3px solid var(--gold);
+  margin-top: 2.2rem;
+  padding: 1.1rem 1.3rem;
+  border: 1px solid var(--gilt-deep);
+  border-left: 3px solid var(--gilt);
   border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.22);
+  box-shadow: inset 0 0 0 2px var(--panel-deep);
   font-style: italic;
-  color: var(--ash);
+  color: var(--ink-body);
 }
 
 /* =========================================================================
-   Candle / blackout mode
+   Candle / blackout mode — read by one flame
    ========================================================================= */
 body.candle-mode {
-  --ash: #b8ada0;
+  --ink-body: #c6b693;
 }
 body.candle-mode #smoke-layer {
   opacity: 0.4;
 }
 body.candle-mode::after {
-  background: radial-gradient(60% 50% at 50% 40%, transparent 0%, rgba(0, 0, 0, 0.92) 100%);
+  background: radial-gradient(58% 48% at 50% 40%, transparent 0%, rgba(6, 4, 2, 0.94) 100%);
 }
 body.candle-mode .topnav {
-  opacity: 0.25;
+  opacity: 0.22;
   transition: opacity 0.3s ease;
 }
 body.candle-mode .topnav:hover {
@@ -1006,7 +1259,13 @@ body.candle-mode .topnav:hover {
    ========================================================================= */
 @media (max-width: 720px) {
   body {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
+  }
+  #app {
+    padding: 1.5rem 1.1rem 4.5rem;
+  }
+  .qlipha {
+    padding: 2rem 1.2rem 1.8rem;
   }
   .journal-grid {
     grid-template-columns: 1fr;
@@ -1016,7 +1275,7 @@ body.candle-mode .topnav:hover {
     grid-template-columns: 1fr;
   }
   .nav-links {
-    gap: 0.75rem;
+    gap: 0.8rem;
   }
   .brand-text {
     display: none;
@@ -1033,5 +1292,8 @@ body.candle-mode .topnav:hover {
   }
   .sigil-line {
     stroke-dashoffset: 0;
+  }
+  body::after {
+    animation: none;
   }
 }

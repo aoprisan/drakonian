@@ -79,14 +79,16 @@ export function startSmoke(host: HTMLElement): () => void {
         particles.splice(i, 1);
         continue;
       }
-      const alpha = Math.sin(frac * Math.PI) * 0.06;
+      const alpha = Math.sin(frac * Math.PI) * 0.055;
       const grad = cctx!.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
       if (p.hue) {
-        grad.addColorStop(0, `rgba(190,40,30,${alpha})`);
-        grad.addColorStop(1, 'rgba(190,40,30,0)');
+        // Occasional warm ember rising from the candle.
+        grad.addColorStop(0, `rgba(168,58,28,${alpha})`);
+        grad.addColorStop(1, 'rgba(168,58,28,0)');
       } else {
-        grad.addColorStop(0, `rgba(120,110,120,${alpha})`);
-        grad.addColorStop(1, 'rgba(120,110,120,0)');
+        // Gilt dust drifting through candlelight.
+        grad.addColorStop(0, `rgba(198,164,104,${alpha})`);
+        grad.addColorStop(1, 'rgba(198,164,104,0)');
       }
       cctx!.fillStyle = grad;
       cctx!.beginPath();

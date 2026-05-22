@@ -1,5 +1,7 @@
 import '@fontsource/cinzel/600.css';
 import '@fontsource/cinzel/700.css';
+import '@fontsource/cinzel-decorative/700.css';
+import '@fontsource/unifrakturcook/700.css';
 import '@fontsource/eb-garamond/400.css';
 import '@fontsource/eb-garamond/500.css';
 import '@fontsource/eb-garamond/400-italic.css';
