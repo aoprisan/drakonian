@@ -37,18 +37,22 @@ export interface Ambience {
   droneEnabled: boolean;
   /** Candle / blackout mode dims all but the focused text. */
   candleMode: boolean;
+  /** Struck-bell tones and haptic pulses that mark rite transitions and breath. */
+  cues: boolean;
 }
 
 const AMBIENCE_KEY = 'drakonian:ambience';
 
+const AMBIENCE_DEFAULTS: Ambience = { droneEnabled: true, candleMode: false, cues: true };
+
 function loadAmbience(): Ambience {
   try {
     const raw = localStorage.getItem(AMBIENCE_KEY);
-    if (raw) return { droneEnabled: true, candleMode: false, ...JSON.parse(raw) };
+    if (raw) return { ...AMBIENCE_DEFAULTS, ...JSON.parse(raw) };
   } catch {
     /* ignore */
   }
-  return { droneEnabled: true, candleMode: false };
+  return { ...AMBIENCE_DEFAULTS };
 }
 
 export const ambience = new Observable<Ambience>(loadAmbience());

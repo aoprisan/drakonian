@@ -15,6 +15,7 @@ import { loadPersisted } from './state/journal';
 
 import { createTreeView } from './views/tree';
 import { createQliphaView } from './views/qlipha';
+import { createTunnelView } from './views/tunnel';
 import { createRitualView } from './views/ritual';
 import { createJournalView } from './views/journal';
 import { createAboutView } from './views/about';
@@ -22,6 +23,7 @@ import { createAboutView } from './views/about';
 // --- Routes ---------------------------------------------------------------
 route('/', createTreeView);
 route('/qlipha/:id', createQliphaView);
+route('/tunnel/:id', createTunnelView);
 route('/ritual/:id', createRitualView);
 route('/journal', createJournalView);
 route('/about', createAboutView);

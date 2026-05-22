@@ -3,6 +3,9 @@ import { getRitual } from '../data/rituals';
 import { getQlipha } from '../data/qliphoth';
 import { createBreathPacer, createCountdown, type Pacer } from '../components/timer';
 import { startDrone, stopDrone, isRunning } from '../audio/drone';
+import { resumeAudio } from '../audio/context';
+import { cue } from '../audio/cues';
+import { acquireWakeLock, releaseWakeLock } from '../sys/wakelock';
 import { ambience } from '../state/store';
 import { addEntry } from '../state/journal';
 
@@ -60,21 +63,30 @@ export function createRitualView(): View {
             <p class="rite-blurb">${escapeHtml(ritual!.intro)}</p>
             <div class="rite-controls-intro">
               <label class="drone-toggle">
-                <input type="checkbox" ${ambience.get().droneEnabled ? 'checked' : ''} />
+                <input type="checkbox" data-toggle="drone" ${ambience.get().droneEnabled ? 'checked' : ''} />
                 <span>Ambient drone</span>
+              </label>
+              <label class="drone-toggle">
+                <input type="checkbox" data-toggle="cues" ${ambience.get().cues ? 'checked' : ''} />
+                <span>Bells &amp; vibration</span>
               </label>
               <button type="button" class="begin-rite primary-btn">Begin the Rite</button>
             </div>
             <p class="rite-warn">Find a dark, quiet place. The rite advances at your pace.</p>
           </header>`;
 
-        const droneInput = stage.querySelector<HTMLInputElement>('.drone-toggle input')!;
+        const droneInput = stage.querySelector<HTMLInputElement>('[data-toggle="drone"]')!;
         droneInput.addEventListener('change', () => {
           ambience.update((a) => ({ ...a, droneEnabled: droneInput.checked }));
         });
+        const cuesInput = stage.querySelector<HTMLInputElement>('[data-toggle="cues"]')!;
+        cuesInput.addEventListener('change', () => {
+          ambience.update((a) => ({ ...a, cues: cuesInput.checked }));
+        });
 
         stage.querySelector<HTMLButtonElement>('.begin-rite')!.addEventListener('click', async () => {
-          // User gesture: safe to start audio.
+          // User gesture: unlock audio (for cues) and start the drone if wanted.
+          await resumeAudio();
           if (ambience.get().droneEnabled && !isRunning()) {
             try {
               await startDrone();
@@ -83,6 +95,9 @@ export function createRitualView(): View {
               /* audio not available; continue silently */
             }
           }
+          // Keep the screen awake for the duration of the working.
+          void acquireWakeLock();
+          cue.begin();
           index = 0;
           renderStep();
         });
@@ -115,7 +130,10 @@ export function createRitualView(): View {
         // Attach pacer for timed step types.
         const slot = wrap.querySelector<HTMLElement>('.rite-pacer-slot')!;
         if (step.type === 'breath') {
-          pacer = createBreathPacer(step, () => {});
+          pacer = createBreathPacer(step, () => {}, (phase) => {
+            if (phase === 'inhale') cue.breathIn();
+            else if (phase === 'exhale') cue.breathOut();
+          });
           slot.appendChild(pacer.el);
           pacer.start();
         } else if (step.durationSec) {
@@ -127,12 +145,14 @@ export function createRitualView(): View {
         wrap.querySelector<HTMLButtonElement>('[data-act="prev"]')!.addEventListener('click', () => {
           if (index > 0) {
             index--;
+            cue.step();
             renderStep();
           }
         });
         wrap.querySelector<HTMLButtonElement>('[data-act="next"]')!.addEventListener('click', () => {
           if (index < total - 1) {
             index++;
+            cue.step();
             renderStep();
           } else {
             renderComplete();
@@ -142,6 +162,8 @@ export function createRitualView(): View {
 
       function renderComplete() {
         clearPacer();
+        cue.seal();
+        releaseWakeLock();
         teardownAudio();
         stage.innerHTML = `
           <div class="rite-complete">
@@ -191,6 +213,7 @@ export function createRitualView(): View {
       pacer = null;
       unsubAmbience?.();
       unsubAmbience = null;
+      releaseWakeLock();
       teardownAudio();
     },
   };

@@ -4,6 +4,7 @@
 
 import { createTreeView } from '../src/views/tree';
 import { createQliphaView } from '../src/views/qlipha';
+import { createTunnelView } from '../src/views/tunnel';
 import { createRitualView } from '../src/views/ritual';
 import { createJournalView } from '../src/views/journal';
 import { createAboutView } from '../src/views/about';
@@ -11,6 +12,7 @@ import { buildNav } from '../src/components/nav';
 import { sigilSvg } from '../src/components/sigil';
 import { buildTreeSvg } from '../src/components/tree-svg';
 import { QLIPHOTH, TREE_PATHS, ASCENT, getQlipha } from '../src/data/qliphoth';
+import { TUNNELS, getTunnel, getTunnelByPair } from '../src/data/tunnels';
 import { DEGREES } from '../src/data/degrees';
 import { RITUALS } from '../src/data/rituals';
 
@@ -58,6 +60,20 @@ check('ASCENT is base→crown (10 down to 1)', () => {
     throw new Error('ascent order wrong');
 });
 
+check('22 tunnels, unique ids, one per tree path', () => {
+  if (TUNNELS.length !== 22) throw new Error(`expected 22 tunnels, got ${TUNNELS.length}`);
+  const ids = new Set(TUNNELS.map((t) => t.id));
+  if (ids.size !== 22) throw new Error('duplicate tunnel ids');
+  for (const [a, b] of TREE_PATHS) {
+    if (!getTunnelByPair(a, b)) throw new Error(`path ${a}↔${b} has no tunnel`);
+  }
+  for (const t of TUNNELS) {
+    if (!getQlipha(t.pair[0]) || !getQlipha(t.pair[1])) throw new Error(`${t.id}: bad pair`);
+    if (!getTunnel(t.id)) throw new Error(`${t.id}: not retrievable by id`);
+  }
+  return `${TUNNELS.length} tunnels`;
+});
+
 // --- Components ------------------------------------------------------------
 check('sigilSvg produces an <svg> for each shell', () => {
   for (const q of QLIPHOTH) {
@@ -66,13 +82,15 @@ check('sigilSvg produces an <svg> for each shell', () => {
   }
 });
 
-check('buildTreeSvg yields 10 node links + 22 path lines', () => {
-  const svg = buildTreeSvg(() => {});
+check('buildTreeSvg yields 10 nodes + 22 paths + 22 tunnel links', () => {
+  const svg = buildTreeSvg(() => {}, () => {});
   const nodes = svg.querySelectorAll('a.tree-node').length;
   const paths = svg.querySelectorAll('line.tree-path').length;
+  const tunnels = svg.querySelectorAll('a.tree-tunnel[href]').length;
   if (nodes !== 10) throw new Error(`nodes=${nodes}`);
   if (paths !== 22) throw new Error(`paths=${paths}`);
-  return `nodes=${nodes} paths=${paths}`;
+  if (tunnels !== 22) throw new Error(`tunnels=${tunnels}`);
+  return `nodes=${nodes} paths=${paths} tunnels=${tunnels}`;
 });
 
 check('buildNav renders brand + links', () => {
@@ -97,6 +115,8 @@ mountView('tree', createTreeView);
 mountView('qlipha(lilith)', createQliphaView, { id: 'lilith' });
 mountView('qlipha(thaumiel)', createQliphaView, { id: 'thaumiel' });
 mountView('qlipha(unknown)', createQliphaView, { id: 'nope' });
+mountView('tunnel(thantifaxath)', createTunnelView, { id: 'thantifaxath' });
+mountView('tunnel(unknown)', createTunnelView, { id: 'nope' });
 mountView('ritual(rite-lilith)', createRitualView, { id: 'rite-lilith' });
 mountView('ritual(unknown)', createRitualView, { id: 'nope' });
 mountView('journal', createJournalView);

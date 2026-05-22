@@ -16,11 +16,18 @@ const PHASE_LABEL: Record<Phase, string> = {
   'hold-out': 'Rest',
 };
 
+export type BreathPhase = 'inhale' | 'hold-in' | 'exhale' | 'hold-out';
+
 /**
  * Breath pacer: an expanding/contracting ring driven by the step cadence.
- * Falls back to a static guide under reduced-motion.
+ * Falls back to a static guide under reduced-motion. `onPhase` fires once each
+ * time the cadence crosses into a new phase, so callers can cue tone/haptics.
  */
-export function createBreathPacer(step: RitualStep, onComplete: () => void): Pacer {
+export function createBreathPacer(
+  step: RitualStep,
+  onComplete: () => void,
+  onPhase?: (phase: BreathPhase) => void,
+): Pacer {
   const cadence = step.cadence ?? [4, 4, 4, 4];
   const total = (step.durationSec ?? 60) * 1000;
   const reduce = prefersReducedMotion();
@@ -44,6 +51,7 @@ export function createBreathPacer(step: RitualStep, onComplete: () => void): Pac
   let raf = 0;
   let startTs = 0;
   let stopped = false;
+  let lastPhase: Phase | null = null;
 
   function frame(ts: number) {
     if (stopped) return;
@@ -77,6 +85,11 @@ export function createBreathPacer(step: RitualStep, onComplete: () => void): Pac
 
     if (!reduce) ring.style.transform = `scale(${scale.toFixed(3)})`;
     phaseEl.textContent = PHASE_LABEL[phase];
+
+    if (phase !== lastPhase) {
+      lastPhase = phase;
+      onPhase?.(phase);
+    }
 
     raf = requestAnimationFrame(frame);
   }

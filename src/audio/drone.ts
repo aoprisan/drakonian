@@ -3,7 +3,8 @@
 // oscillators through a slow filter sweep and a generated reverb. Must be
 // started from a user gesture (browser autoplay policy).
 
-let ctx: AudioContext | null = null;
+import { audioContext, resumeAudio } from './context';
+
 let master: GainNode | null = null;
 let voices: OscillatorNode[] = [];
 let lfo: OscillatorNode | null = null;
@@ -28,9 +29,8 @@ export function isRunning(): boolean {
 
 export async function startDrone(): Promise<void> {
   if (running) return;
-  const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  ctx = ctx ?? new AC();
-  if (ctx.state === 'suspended') await ctx.resume();
+  await resumeAudio();
+  const ctx = audioContext();
 
   const now = ctx.currentTime;
 
@@ -80,8 +80,8 @@ export async function startDrone(): Promise<void> {
 }
 
 export function stopDrone(): void {
-  if (!ctx || !running) return;
-  const now = ctx.currentTime;
+  if (!running) return;
+  const now = audioContext().currentTime;
   if (master) master.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
   const toStop = [...voices, lfo].filter(Boolean) as OscillatorNode[];
   for (const osc of toStop) {

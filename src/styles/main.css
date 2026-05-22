@@ -1296,4 +1296,197 @@ body.candle-mode .topnav:hover {
   body::after {
     animation: none;
   }
+  #shell-wash {
+    transition: none;
+  }
+}
+
+/* =========================================================================
+   Tunnels of Set — the interactive paths and their index
+   ========================================================================= */
+.tree-tunnel {
+  cursor: pointer;
+}
+.tree-tunnel:focus {
+  outline: none;
+}
+/* A wide invisible stroke makes the thin visible path easy to tap. */
+.tree-path-hit {
+  stroke: transparent;
+  stroke-width: 3.4;
+  vector-effect: non-scaling-stroke;
+}
+.tree-tunnel:hover .tree-path,
+.tree-tunnel:focus .tree-path {
+  stroke: var(--gilt-bright);
+  stroke-width: 1;
+  filter: drop-shadow(0 0 3px rgba(193, 154, 69, 0.65));
+}
+
+.tunnels-index {
+  max-width: 40rem;
+  margin: 1.6rem auto 0;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--gilt-deep);
+}
+.tunnels-index > summary {
+  list-style: none;
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  transition: color 0.2s ease;
+}
+.tunnels-index > summary::-webkit-details-marker {
+  display: none;
+}
+.tunnels-index > summary::before {
+  content: '☿';
+  color: var(--gilt-deep);
+  margin-right: 0.5rem;
+}
+.tunnels-index > summary:hover {
+  color: var(--gilt-bright);
+}
+.tunnels-index[open] > summary {
+  color: var(--gilt);
+  margin-bottom: 0.9rem;
+}
+.tunnel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.tunnel-list a {
+  display: grid;
+  grid-template-columns: 1.7rem 1fr;
+  grid-template-areas: 'letter name' 'letter epithet';
+  column-gap: 0.7rem;
+  align-items: baseline;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.tunnel-list a:hover {
+  border-color: var(--gilt-deep);
+  background: rgba(120, 70, 24, 0.08);
+}
+.tunnel-list-letter {
+  grid-area: letter;
+  align-self: center;
+  text-align: center;
+  line-height: 1;
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+.tunnel-list-name {
+  grid-area: name;
+  font-family: var(--font-ui);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.tunnel-list-epithet {
+  grid-area: epithet;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+/* =========================================================================
+   Tunnel (codex) view — a leaf for the path between two gates
+   ========================================================================= */
+.tunnel {
+  position: relative;
+  text-align: center;
+  border: 1px solid var(--gilt-deep);
+  border-top: 3px solid var(--accent);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(120, 70, 24, 0.1), transparent 60%),
+    linear-gradient(180deg, var(--panel), var(--panel-deep));
+  border-radius: var(--radius);
+  padding: 2.4rem 1.9rem 2.1rem;
+  box-shadow: inset 0 0 0 4px var(--vellum), inset 0 0 0 5px var(--gilt-deep),
+    0 18px 50px -28px #000;
+}
+.tunnel-glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 1.1rem;
+}
+.tunnel-glyph .sigil {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+}
+.tunnel-letter {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-body);
+  font-size: 3.1rem;
+  line-height: 1;
+  color: var(--accent);
+  text-shadow: 0 0 18px var(--shell-glow, rgba(193, 154, 69, 0.4));
+}
+.tunnel-kicker {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0 0 0.3rem;
+}
+.tunnel-epithet {
+  font-style: italic;
+  color: var(--gilt-bright);
+  margin: 0.3rem 0 0;
+}
+.tunnel-bridge {
+  font-family: var(--font-ui);
+  font-size: 0.84rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  margin: 1.4rem 0 0;
+}
+.tunnel-desc {
+  text-align: left;
+  margin: 1.2rem 0 0;
+  color: var(--ink-body);
+}
+
+/* =========================================================================
+   Per-shell theming — the UI takes on the hue of the gate being worked
+   ========================================================================= */
+#shell-wash {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background: radial-gradient(120% 90% at 50% 8%, var(--shell-glow, transparent), transparent 55%);
+  transition: opacity 1s ease, background 1s ease;
+}
+body[data-shell] #shell-wash {
+  opacity: 0.16;
+}
+.topnav {
+  transition: border-bottom-color 0.8s ease;
+}
+body[data-shell] .topnav {
+  border-bottom-color: var(--accent);
+}
+.brand-mark {
+  transition: background 0.8s ease;
+}
+body[data-shell] .brand-mark {
+  background: radial-gradient(circle at 38% 32%, var(--shell-glow), var(--shell-mid) 55%, var(--shell-deep));
 }

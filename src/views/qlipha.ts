@@ -3,6 +3,7 @@ import { getQlipha, ASCENT } from '../data/qliphoth';
 import { getDegree } from '../data/degrees';
 import { getRitual } from '../data/rituals';
 import { sigilSvg } from '../components/sigil';
+import { applyShellTheme } from '../fx/theme';
 
 function escapeHtml(s: string): string {
   const div = document.createElement('div');
@@ -32,6 +33,7 @@ export function createQliphaView(): View {
       const next = ASCENT[idx + 1];
 
       section.style.setProperty('--accent', q.colors[1] ?? '#6b0f1a');
+      applyShellTheme(q.colors);
       section.innerHTML = `
         <a class="back-link" href="#/">&#x2190; The Tree</a>
         <article class="qlipha">
@@ -69,6 +71,8 @@ export function createQliphaView(): View {
       `;
       container.appendChild(section);
     },
-    destroy() {},
+    destroy() {
+      applyShellTheme(null);
+    },
   };
 }

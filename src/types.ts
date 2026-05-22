@@ -51,6 +51,25 @@ export interface Degree {
   theme: string;
 }
 
+export interface Tunnel {
+  /** Slug of the ruling spirit's name, e.g. "thantifaxath". */
+  id: string;
+  /** The two shells this tunnel bridges (matches a TREE_PATHS edge). */
+  pair: [QliphaId, QliphaId];
+  /** Ruling intelligence of the tunnel (Grant's Nightside of Eden). */
+  name: string;
+  /** Hebrew letter of the corresponding path. */
+  letter: string;
+  /** Name of the Hebrew letter, e.g. "Tau". */
+  letterName: string;
+  /** The Tarot Atu of the path (Golden Dawn attribution). */
+  atu: string;
+  /** Short evocative summary. */
+  epithet: string;
+  /** Longer codex description (original, tradition-faithful prose). */
+  description: string;
+}
+
 export type RitualStepType = 'invocation' | 'breath' | 'meditation' | 'gesture';
 
 export interface RitualStep {

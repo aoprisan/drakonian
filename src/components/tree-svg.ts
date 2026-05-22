@@ -1,9 +1,11 @@
 import { QLIPHOTH, TREE_PATHS } from '../data/qliphoth';
+import { getTunnelByPair } from '../data/tunnels';
 import type { Qlipha } from '../types';
 
 // Builds the interactive Nightside Tree as an SVG. Coordinates in the data are
 // normalised 0..1; we project them into a tall viewBox. Nodes are anchors that
-// route to the codex; paths are the 22 connections of the Tree.
+// route to the codex; the 22 connecting paths are the Tunnels of Set, each a
+// link to its tunnel page.
 
 const VB_W = 100;
 const VB_H = 150;
@@ -13,8 +15,19 @@ function project(q: Qlipha): { x: number; y: number } {
   return { x: q.pos.x * VB_W, y: q.pos.y * VB_H };
 }
 
-export function buildTreeSvg(onSelect: (id: string) => void): SVGSVGElement {
-  const ns = 'http://www.w3.org/2000/svg';
+const ns = 'http://www.w3.org/2000/svg';
+
+function setLine(el: SVGLineElement, a: { x: number; y: number }, b: { x: number; y: number }): void {
+  el.setAttribute('x1', a.x.toFixed(2));
+  el.setAttribute('y1', a.y.toFixed(2));
+  el.setAttribute('x2', b.x.toFixed(2));
+  el.setAttribute('y2', b.y.toFixed(2));
+}
+
+export function buildTreeSvg(
+  onSelectNode: (id: string) => void,
+  onSelectTunnel: (id: string) => void,
+): SVGSVGElement {
   const svg = document.createElementNS(ns, 'svg');
   svg.setAttribute('viewBox', `0 0 ${VB_W} ${VB_H}`);
   svg.setAttribute('class', 'tree-svg');
@@ -31,22 +44,50 @@ export function buildTreeSvg(onSelect: (id: string) => void): SVGSVGElement {
   );
   svg.appendChild(spine);
 
-  // Paths.
+  // Paths — the Tunnels of Set. Each is a link with a wide invisible hit-line
+  // so the thin visible stroke is still easy to tap.
   const pathGroup = document.createElementNS(ns, 'g');
   pathGroup.setAttribute('class', 'tree-paths');
   const byId = new Map(QLIPHOTH.map((q) => [q.id, q]));
   for (const [a, b] of TREE_PATHS) {
-    const qa = byId.get(a)!;
-    const qb = byId.get(b)!;
-    const pa = project(qa);
-    const pb = project(qb);
+    const pa = project(byId.get(a)!);
+    const pb = project(byId.get(b)!);
+    const tunnel = getTunnelByPair(a, b);
+
+    const link = document.createElementNS(ns, 'a');
+    link.setAttribute('class', 'tree-tunnel');
+
+    const hit = document.createElementNS(ns, 'line');
+    setLine(hit, pa, pb);
+    hit.setAttribute('class', 'tree-path-hit');
+
     const line = document.createElementNS(ns, 'line');
-    line.setAttribute('x1', pa.x.toFixed(2));
-    line.setAttribute('y1', pa.y.toFixed(2));
-    line.setAttribute('x2', pb.x.toFixed(2));
-    line.setAttribute('y2', pb.y.toFixed(2));
+    setLine(line, pa, pb);
     line.setAttribute('class', 'tree-path');
-    pathGroup.appendChild(line);
+
+    if (tunnel) {
+      link.setAttribute('href', `#/tunnel/${tunnel.id}`);
+      link.setAttribute('tabindex', '0');
+      link.setAttribute('role', 'link');
+      link.setAttribute('aria-label', `Tunnel of ${tunnel.name} — ${tunnel.epithet}`);
+      const title = document.createElementNS(ns, 'title');
+      title.textContent = `${tunnel.name} · ${tunnel.atu}`;
+      link.appendChild(title);
+      link.append(hit, line);
+      link.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        onSelectTunnel(tunnel.id);
+      });
+      link.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          onSelectTunnel(tunnel.id);
+        }
+      });
+    } else {
+      link.append(hit, line);
+    }
+    pathGroup.appendChild(link);
   }
   svg.appendChild(pathGroup);
 
@@ -94,12 +135,12 @@ export function buildTreeSvg(onSelect: (id: string) => void): SVGSVGElement {
     a.append(halo, circle, num, label);
     a.addEventListener('click', (ev) => {
       ev.preventDefault();
-      onSelect(q.id);
+      onSelectNode(q.id);
     });
     a.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' || ev.key === ' ') {
         ev.preventDefault();
-        onSelect(q.id);
+        onSelectNode(q.id);
       }
     });
     nodeGroup.appendChild(a);

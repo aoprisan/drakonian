@@ -43,7 +43,7 @@ export function createAboutView(): View {
 
           <h2>How to Use This Book</h2>
           <ul>
-            <li><strong>The Tree</strong> — the map. Touch a shell to read its mystery.</li>
+            <li><strong>The Tree</strong> — the map. Touch a shell to read its mystery, or a path between shells to walk one of the twenty-two <em>Tunnels of Set</em>.</li>
             <li><strong>The Codex</strong> — each shell's ruler, planet, element, and rite.</li>
             <li><strong>The Rites</strong> — guided workings with breath, invocation, and vision. Best worked in darkness.</li>
             <li><strong>The Black Book</strong> — your private journal and initiation tracker. Nothing leaves this device; export a backup to keep it safe.</li>
