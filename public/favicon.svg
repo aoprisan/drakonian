@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="65%">
+      <stop offset="0%" stop-color="#1a0c10"/>
+      <stop offset="60%" stop-color="#0a0708"/>
+      <stop offset="100%" stop-color="#050304"/>
+    </radialGradient>
+    <radialGradient id="pupil" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#ff7a3c"/>
+      <stop offset="45%" stop-color="#d94a2a"/>
+      <stop offset="100%" stop-color="#6b0f1a"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- warded circle -->
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#6b0f1a" stroke-width="4" opacity="0.7"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#b08d57" stroke-width="2" opacity="0.6"/>
+
+  <!-- radiating spokes -->
+  <g stroke="#b08d57" stroke-width="2" opacity="0.45">
+    <line x1="256" y1="60" x2="256" y2="110"/>
+    <line x1="256" y1="402" x2="256" y2="452"/>
+    <line x1="60" y1="256" x2="110" y2="256"/>
+    <line x1="402" y1="256" x2="452" y2="256"/>
+  </g>
+
+  <!-- dragon eye: almond formed by two arcs -->
+  <g filter="url(#glow)">
+    <path d="M96 256 Q256 120 416 256 Q256 392 96 256 Z"
+          fill="none" stroke="#caa24a" stroke-width="6"/>
+    <!-- vertical slit pupil -->
+    <path d="M256 168 Q286 256 256 344 Q226 256 256 168 Z" fill="url(#pupil)"/>
+    <circle cx="256" cy="256" r="10" fill="#ffd9a0"/>
+  </g>
+
+  <!-- coiled serpent flourishes at the corners of the eye -->
+  <path d="M96 256 q-26 -20 -10 -46" fill="none" stroke="#6b0f1a" stroke-width="6" stroke-linecap="round"/>
+  <path d="M416 256 q26 -20 10 -46" fill="none" stroke="#6b0f1a" stroke-width="6" stroke-linecap="round"/>
+</svg>

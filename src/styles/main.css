@@ -1,0 +1,1037 @@
+/* =========================================================================
+   Drakonian — Grimoire of the Nightside
+   Dark crimson / black ritual theme.
+   ========================================================================= */
+
+:root {
+  --bg: #0a0708;
+  --bg-soft: #120c0e;
+  --panel: #160e11;
+  --panel-edge: #2a1a1f;
+  --crimson: #6b0f1a;
+  --crimson-bright: #8b0000;
+  --ember: #d94a2a;
+  --ash: #c9bfb5;
+  --ash-dim: #8a8077;
+  --bone: #e8e0d4;
+  --gold: #b08d57;
+  --gold-bright: #caa24a;
+  --accent: var(--crimson);
+
+  --font-display: 'Cinzel', 'Times New Roman', serif;
+  --font-body: 'EB Garamond', Georgia, serif;
+
+  --maxw: 56rem;
+  --radius: 4px;
+  --shadow-glow: 0 0 24px -6px var(--crimson);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 800px at 50% -10%, #1a0c10 0%, transparent 60%),
+    radial-gradient(900px 700px at 50% 120%, #160a14 0%, transparent 55%),
+    var(--bg);
+  color: var(--ash);
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Vignette + subtle grain over the whole page. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background:
+    radial-gradient(120% 120% at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.55) 100%);
+  mix-blend-mode: multiply;
+}
+
+a {
+  color: var(--gold-bright);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--ember);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: var(--bone);
+}
+
+/* --- Smoke layer --- */
+#smoke-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.smoke-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- App shell --- */
+#app {
+  position: relative;
+  z-index: 2;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 5rem;
+}
+
+/* --- Top navigation --- */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(180deg, rgba(10, 7, 8, 0.95), rgba(10, 7, 8, 0.7));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--panel-edge);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--bone);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+.brand-mark {
+  color: var(--crimson-bright);
+  font-size: 1.3rem;
+  text-shadow: 0 0 10px var(--crimson);
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.nav-links a {
+  color: var(--ash-dim);
+}
+.nav-links a.active,
+.nav-links a:hover {
+  color: var(--gold-bright);
+}
+.candle-toggle {
+  background: none;
+  border: 1px solid var(--panel-edge);
+  color: var(--ash);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+.candle-toggle[aria-pressed='true'] {
+  color: var(--gold-bright);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px -4px var(--gold);
+}
+
+/* --- View transitions --- */
+.view-entering {
+  opacity: 0;
+  transform: translateY(8px);
+}
+#app {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.view-leaving {
+  opacity: 0;
+}
+
+.display-title {
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  margin: 0 0 0.4rem;
+  background: linear-gradient(180deg, var(--bone), var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 30px rgba(107, 15, 26, 0.4);
+}
+.subtitle {
+  color: var(--ash-dim);
+  font-style: italic;
+  margin-top: 0;
+}
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
+}
+
+/* --- Buttons --- */
+.primary-btn,
+.ghost-btn {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.7rem 1.3rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.primary-btn {
+  background: linear-gradient(180deg, var(--crimson), #4a0a12);
+  color: var(--bone);
+  border: 1px solid var(--crimson-bright);
+  box-shadow: var(--shadow-glow);
+}
+.primary-btn:hover {
+  background: linear-gradient(180deg, var(--crimson-bright), var(--crimson));
+  box-shadow: 0 0 28px -4px var(--crimson-bright);
+}
+.ghost-btn {
+  background: transparent;
+  color: var(--ash);
+  border: 1px solid var(--panel-edge);
+  text-decoration: none;
+  display: inline-block;
+}
+.ghost-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--ash-dim);
+}
+
+/* =========================================================================
+   Sigils
+   ========================================================================= */
+.sigil {
+  overflow: visible;
+}
+.sigil circle,
+.sigil line,
+.sigil polygon,
+.sigil path {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 0.8;
+  vector-effect: non-scaling-stroke;
+}
+.sigil-ring-outer {
+  stroke: var(--crimson);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 4px var(--crimson));
+}
+.sigil-ring-inner {
+  stroke: rgba(176, 141, 87, 0.5);
+}
+.sigil-line {
+  stroke: var(--gold-bright);
+  stroke-width: 1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px var(--gold));
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: sigil-draw 2.4s ease forwards, sigil-breathe 5s ease-in-out 2.4s infinite;
+}
+.sigil-core {
+  stroke: var(--ember);
+  opacity: 0.8;
+}
+.sigil-eye {
+  fill: var(--ember);
+  stroke: none;
+  filter: drop-shadow(0 0 5px var(--ember));
+  animation: sigil-breathe 4s ease-in-out infinite;
+}
+.sigil-spokes line {
+  stroke: rgba(176, 141, 87, 0.35);
+}
+
+@keyframes sigil-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sigil-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px var(--gold));
+    opacity: 0.85;
+  }
+  50% {
+    filter: drop-shadow(0 0 9px var(--gold-bright));
+    opacity: 1;
+  }
+}
+
+/* =========================================================================
+   Tree view
+   ========================================================================= */
+.tree-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.tree-stage {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+.tree-svg {
+  width: min(100%, 30rem);
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(107, 15, 26, 0.25));
+}
+.tree-spine {
+  fill: none;
+  stroke: var(--crimson);
+  stroke-width: 0.6;
+  opacity: 0.25;
+  stroke-dasharray: 2 3;
+  animation: spine-pulse 8s ease-in-out infinite;
+}
+@keyframes spine-pulse {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+.tree-path {
+  stroke: rgba(176, 141, 87, 0.28);
+  stroke-width: 0.4;
+  vector-effect: non-scaling-stroke;
+}
+.tree-node {
+  cursor: pointer;
+}
+.tree-node-halo {
+  fill: var(--crimson);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.tree-node-circle {
+  stroke: var(--gold);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(107, 15, 26, 0.7));
+  animation: node-breathe 4s ease-in-out infinite;
+  animation-delay: var(--node-delay, 0s);
+}
+.tree-node:hover .tree-node-halo,
+.tree-node:focus .tree-node-halo {
+  opacity: 0.35;
+}
+.tree-node:focus {
+  outline: none;
+}
+.tree-node:focus .tree-node-circle {
+  stroke: var(--gold-bright);
+  stroke-width: 1.2;
+}
+.tree-node-num {
+  fill: var(--bone);
+  font-family: var(--font-display);
+  font-size: 4px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.tree-node-label {
+  fill: var(--ash);
+  font-family: var(--font-display);
+  font-size: 3.4px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.tree-node:hover .tree-node-label {
+  fill: var(--gold-bright);
+}
+@keyframes node-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(107, 15, 26, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(217, 74, 42, 0.7));
+  }
+}
+.tree-hint {
+  text-align: center;
+  color: var(--ash-dim);
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+.ascent-list {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.ascent-list a {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  grid-template-areas: 'order name' 'order epithet';
+  gap: 0 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-left: 3px solid var(--crimson);
+  border-radius: var(--radius);
+  color: var(--ash);
+}
+.ascent-list a:hover {
+  border-left-color: var(--gold-bright);
+  background: var(--bg-soft);
+}
+.ascent-order {
+  grid-area: order;
+  align-self: center;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--crimson-bright);
+  text-align: center;
+}
+.ascent-name {
+  grid-area: name;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  color: var(--bone);
+}
+.ascent-epithet {
+  grid-area: epithet;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ash-dim);
+}
+
+/* =========================================================================
+   Qlipha (codex) view
+   ========================================================================= */
+.qlipha {
+  border: 1px solid var(--panel-edge);
+  border-top: 3px solid var(--accent);
+  background: linear-gradient(180deg, var(--panel), var(--bg-soft));
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+  box-shadow: 0 10px 40px -20px #000;
+}
+.qlipha-sigil {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.qlipha-head {
+  text-align: center;
+}
+.qlipha-order {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
+}
+.qlipha-translation {
+  font-style: italic;
+  color: var(--gold);
+}
+.correspondences {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1.5rem;
+  margin: 1.75rem 0;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-edge);
+}
+.correspondences div {
+  margin: 0;
+}
+.correspondences dt {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
+  margin-bottom: 0.15rem;
+}
+.correspondences dd {
+  margin: 0;
+  color: var(--bone);
+}
+.swatches {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+.swatches i {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 1px solid var(--panel-edge);
+  display: inline-block;
+}
+.qlipha-desc {
+  font-size: 1.2rem;
+  line-height: 1.75;
+}
+.enter-rite {
+  display: inline-block;
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  padding: 0.8rem 1.4rem;
+  border: 1px solid var(--crimson-bright);
+  border-radius: var(--radius);
+  color: var(--bone);
+  background: linear-gradient(180deg, rgba(107, 15, 26, 0.4), transparent);
+}
+.enter-rite:hover {
+  background: var(--crimson);
+  color: var(--bone);
+  box-shadow: var(--shadow-glow);
+}
+.qlipha-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* =========================================================================
+   Ritual view
+   ========================================================================= */
+.view-ritual .rite-stage {
+  min-height: 50vh;
+}
+.rite-intro {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+.rite-kicker,
+.rite-step-type {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--crimson-bright);
+}
+.rite-intent {
+  font-style: italic;
+  color: var(--gold);
+  font-size: 1.15rem;
+}
+.rite-blurb {
+  color: var(--ash);
+}
+.rite-controls-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0 1rem;
+}
+.drone-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
+  cursor: pointer;
+}
+.rite-warn {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--ash-dim);
+}
+
+.rite-step {
+  text-align: center;
+  max-width: 38rem;
+  margin: 0 auto;
+}
+.rite-progress {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-bottom: 1.5rem;
+}
+.rite-progress span {
+  width: 1.5rem;
+  height: 3px;
+  background: var(--panel-edge);
+  border-radius: 2px;
+  transition: background 0.3s ease;
+}
+.rite-progress span.on {
+  background: var(--crimson-bright);
+  box-shadow: 0 0 8px -1px var(--crimson);
+}
+.rite-step-title {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  margin: 0.5rem 0 1rem;
+}
+.rite-step-text {
+  font-size: 1.3rem;
+  line-height: 1.85;
+  color: var(--bone);
+}
+.rite-step-invocation .rite-step-text {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+.rite-pacer-slot {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+.rite-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Breath pacer */
+.pacer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.pacer-ring {
+  width: 11rem;
+  height: 11rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--panel-edge);
+}
+.pacer-orb {
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, var(--ember), var(--crimson) 60%, #2a0508);
+  box-shadow: 0 0 40px -6px var(--crimson-bright);
+  transform: scale(0.45);
+  transition: transform 0.12s linear;
+}
+.pacer-phase {
+  font-family: var(--font-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  color: var(--gold-bright);
+}
+
+/* Countdown ring */
+.pacer-countdown {
+  position: relative;
+}
+.countdown-ring {
+  width: 9rem;
+  height: 9rem;
+  transform: rotate(-90deg);
+}
+.countdown-track {
+  fill: none;
+  stroke: var(--panel-edge);
+  stroke-width: 4;
+}
+.countdown-progress {
+  fill: none;
+  stroke: var(--crimson-bright);
+  stroke-width: 4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 5px var(--crimson));
+  transition: stroke-dashoffset 0.2s linear;
+}
+.countdown-time {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--bone);
+}
+
+/* Completion */
+.rite-complete {
+  text-align: center;
+  max-width: 34rem;
+  margin: 0 auto;
+}
+.rite-seal {
+  font-size: 4rem;
+  color: var(--crimson-bright);
+  text-shadow: 0 0 30px var(--crimson);
+  animation: sigil-breathe 4s ease-in-out infinite;
+}
+.rite-record {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+.rite-complete-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.rite-saved {
+  margin-top: 1rem;
+  color: var(--gold-bright);
+}
+
+/* =========================================================================
+   Forms (shared)
+   ========================================================================= */
+input[type='text'],
+textarea,
+select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--bone);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.8rem;
+}
+input[type='text']:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--crimson-bright);
+  box-shadow: 0 0 0 2px rgba(107, 15, 26, 0.3);
+}
+textarea {
+  resize: vertical;
+}
+
+/* =========================================================================
+   Journal view
+   ========================================================================= */
+.journal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+.section-title {
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border-bottom: 1px solid var(--panel-edge);
+  padding-bottom: 0.5rem;
+}
+
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.rung {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  gap: 0.75rem;
+  padding: 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  align-items: start;
+}
+.rung.current {
+  border-color: var(--gold);
+  box-shadow: 0 0 14px -6px var(--gold);
+}
+.rung-mark {
+  height: 3.2rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-edge);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--ash-dim);
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+.rung.attained .rung-mark {
+  background: linear-gradient(180deg, var(--crimson), #3a060c);
+  border-color: var(--crimson-bright);
+  color: var(--bone);
+  box-shadow: var(--shadow-glow);
+}
+.rung-label {
+  font-size: 1.05rem;
+}
+.rung-title {
+  font-family: var(--font-display);
+  color: var(--bone);
+  letter-spacing: 0.04em;
+}
+.rung-theme {
+  margin: 0.2rem 0 0.4rem;
+  font-size: 0.92rem;
+  color: var(--ash-dim);
+  font-style: italic;
+}
+.rung details summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-family: var(--font-display);
+}
+.rung-current {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--ash);
+}
+
+.entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+.entry-form-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.6rem;
+}
+
+.entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.entries-empty {
+  color: var(--ash-dim);
+  font-style: italic;
+}
+.entry {
+  padding: 0.85rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-left: 3px solid var(--crimson);
+  border-radius: var(--radius);
+}
+.entry-dream {
+  border-left-color: #3a2a6b;
+}
+.entry-note {
+  border-left-color: var(--gold);
+}
+.entry-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--ash-dim);
+}
+.entry-type {
+  font-family: var(--font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.entry-head time {
+  flex: 1;
+}
+.entry-del {
+  background: none;
+  border: none;
+  color: var(--ash-dim);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.entry-del:hover {
+  color: var(--ember);
+}
+.entry-title {
+  margin: 0.35rem 0 0.2rem;
+  font-size: 1.2rem;
+}
+.entry-tag {
+  font-size: 0.78rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.entry-body {
+  margin: 0.4rem 0 0;
+  white-space: pre-wrap;
+}
+
+.journal-tools {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--panel-edge);
+  flex-wrap: wrap;
+}
+.import-label {
+  cursor: pointer;
+}
+.import-msg {
+  color: var(--gold-bright);
+  font-size: 0.9rem;
+}
+
+/* =========================================================================
+   About / prose
+   ========================================================================= */
+.prose {
+  max-width: 42rem;
+}
+.prose h2 {
+  font-size: 1.4rem;
+  color: var(--gold);
+  margin-top: 2rem;
+  letter-spacing: 0.06em;
+}
+.prose p,
+.prose li {
+  font-size: 1.18rem;
+  line-height: 1.8;
+}
+.prose strong {
+  color: var(--bone);
+}
+.install-hint {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--panel-edge);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius);
+  font-style: italic;
+  color: var(--ash);
+}
+
+/* =========================================================================
+   Candle / blackout mode
+   ========================================================================= */
+body.candle-mode {
+  --ash: #b8ada0;
+}
+body.candle-mode #smoke-layer {
+  opacity: 0.4;
+}
+body.candle-mode::after {
+  background: radial-gradient(60% 50% at 50% 40%, transparent 0%, rgba(0, 0, 0, 0.92) 100%);
+}
+body.candle-mode .topnav {
+  opacity: 0.25;
+  transition: opacity 0.3s ease;
+}
+body.candle-mode .topnav:hover {
+  opacity: 1;
+}
+
+/* =========================================================================
+   Responsive
+   ========================================================================= */
+@media (max-width: 720px) {
+  body {
+    font-size: 1.08rem;
+  }
+  .journal-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .correspondences {
+    grid-template-columns: 1fr;
+  }
+  .nav-links {
+    gap: 0.75rem;
+  }
+  .brand-text {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .sigil-line {
+    stroke-dashoffset: 0;
+  }
+}

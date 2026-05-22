@@ -1,0 +1,26 @@
+{
+  "name": "drakonian",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drakonian — a digital grimoire of the Nightside. A Draconian / Qliphothic ritual companion PWA.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "generate-icons": "pwa-assets-generator",
+    "test": "node scripts/run-smoke.mjs"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "^5.2.8",
+    "@fontsource/eb-garamond": "^5.2.7",
+    "idb-keyval": "^6.2.1"
+  },
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^0.2.6",
+    "jsdom": "^29.1.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}
