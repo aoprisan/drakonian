@@ -3,17 +3,33 @@ import { buildTreeSvg } from '../components/tree-svg';
 import { navigate } from '../router';
 import { ASCENT } from '../data/qliphoth';
 import { TUNNELS } from '../data/tunnels';
+import { moonPhase, moonGlyphSvg, lunarOmen } from '../sys/lunar';
 
 export function createTreeView(): View {
   return {
     mount(container) {
       const section = document.createElement('section');
       section.className = 'view view-tree';
+
+      const phase = moonPhase();
+      const omen = lunarOmen(phase);
+      const pct = Math.round(phase.illumination * 100);
+      const omenLink = omen.qliphaId
+        ? ` <a class="lunar-link" href="#/qlipha/${omen.qliphaId}">Enter the gate &#x25B8;</a>`
+        : '';
+
       section.innerHTML = `
         <header class="tree-header">
           <h1 class="display-title">The Nightside Tree</h1>
           <p class="subtitle">Descend the Qliphoth. Climb the dragon from the gate of Lilith to the divided crown.</p>
         </header>
+        <aside class="lunar-banner" style="--moon-illum: ${phase.illumination.toFixed(3)}">
+          <span class="lunar-moon">${moonGlyphSvg(phase, { size: 60 })}</span>
+          <div class="lunar-text">
+            <p class="lunar-phase">${phase.name} &middot; ${pct}% lit</p>
+            <p class="lunar-omen">${omen.text}${omenLink}</p>
+          </div>
+        </aside>
         <div class="tree-stage"></div>
         <p class="tree-hint">Touch a shell to enter its mystery, or a path to walk its tunnel.</p>
       `;

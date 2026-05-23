@@ -13,6 +13,7 @@ import { buildNav } from '../src/components/nav';
 import { sigilSvg, sigilSvgStandalone, sigilGeometry } from '../src/components/sigil';
 import { createSigilTracer } from '../src/components/sigil-trace';
 import { buildTreeSvg } from '../src/components/tree-svg';
+import { moonPhase, moonGlyphSvg, lunarOmen } from '../src/sys/lunar';
 import { QLIPHOTH, TREE_PATHS, ASCENT, getQlipha } from '../src/data/qliphoth';
 import { TUNNELS, getTunnel, getTunnelByPair } from '../src/data/tunnels';
 import { DEGREES } from '../src/data/degrees';
@@ -110,6 +111,33 @@ check('createSigilTracer mounts (tap fallback under jsdom)', () => {
   t.el.querySelector('svg')!.dispatchEvent(new Event('click'));
   if (!t.el.classList.contains('traced')) throw new Error('tap did not complete trace');
   t.destroy();
+});
+
+check('moonPhase: known new/full epochs read correctly', () => {
+  const SYNODIC = 29.530588853 * 86_400_000;
+  const newMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+  const fullMoon = new Date(newMoon.getTime() + SYNODIC / 2);
+  const n = moonPhase(newMoon);
+  const f = moonPhase(fullMoon);
+  if (n.name !== 'New Moon') throw new Error(`new → ${n.name}`);
+  if (n.illumination > 0.02) throw new Error(`new illum ${n.illumination}`);
+  if (f.name !== 'Full Moon') throw new Error(`full → ${f.name}`);
+  if (f.illumination < 0.98) throw new Error(`full illum ${f.illumination}`);
+  if (!moonPhase(new Date(newMoon.getTime() + SYNODIC * 0.25)).waxing) throw new Error('quarter not waxing');
+  return `${n.name} / ${f.name}`;
+});
+
+check('lunarOmen favours Gamaliel at the dark moon', () => {
+  const newMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+  if (lunarOmen(moonPhase(newMoon)).qliphaId !== 'gamaliel') throw new Error('new moon should favour gamaliel');
+  const full = moonPhase(new Date(newMoon.getTime() + 29.530588853 * 86_400_000 / 2));
+  if (lunarOmen(full).qliphaId) throw new Error('full moon should favour no shell');
+});
+
+check('moonGlyphSvg renders a disc + lit limb', () => {
+  const svg = moonGlyphSvg(moonPhase(new Date()));
+  if (!svg.includes('<svg')) throw new Error('no svg');
+  if (!svg.includes('class="moon-lit"')) throw new Error('no lit limb');
 });
 
 check('buildTreeSvg yields 10 nodes + 22 paths + 22 tunnel links', () => {

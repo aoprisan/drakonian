@@ -21,24 +21,23 @@ with the app's design.
 - **Personal seal generator** — a sigil derived deterministically from a magical
   name/intent, exported to PNG and optionally inscribed in the journal.
   (`src/views/seal.ts`, `sigilSvgStandalone` in `src/components/sigil.ts`)
+- **Lunar phase awareness** — local moon-phase maths drive a phase banner on the tree;
+  the dark moon favours the gate of Gamaliel, and the moon's glow swells with its
+  illumination. (`src/sys/lunar.ts`, `src/views/tree.ts`)
 
 ---
 
 ## Top picks next
 
-1. **Lunar phase awareness** — most atmosphere for least code; the Nightside is lunar.
-2. **Spoken invocation (TTS)** — biggest usability win for the dark-room use case.
-3. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
+1. **Spoken invocation (TTS)** — biggest usability win for the dark-room use case.
+2. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
+3. **Planetary hours** — pairs naturally with the now-shipped lunar awareness.
 4. **Custom rite builder** — turns a fixed grimoire into a personal one.
 
 ---
 
 ## Ritual practice depth
 
-- **Lunar phase awareness** *(S)* — Compute the moon phase locally (pure math, no
-  network) and surface "the dark moon favours the gate of Gamaliel" on the tree;
-  optionally tint by phase. *Hook:* new util in `src/sys/`, consumed by
-  `src/views/tree.ts`; Gamaliel is the lunar shell.
 - **Planetary hours** *(M)* — Each shell carries a `planet`. Compute sunrise/sunset
   from optional geolocation and show "now is the hour of Saturn — Satariel stands
   open." *Hook:* `Qlipha.planet` in `src/data/qliphoth.ts`; display on
