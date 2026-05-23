@@ -28,6 +28,10 @@ with the app's design.
   step aloud via the Web Speech API for a hands-free, eyes-closed working; speech is
   cancelled on step change, completion, and leaving the rite.
   (`src/sys/speech.ts`, `src/views/ritual.ts`, `tts` flag in `src/state/store.ts`)
+- **Standalone breath trainer** — the breath pacer decoupled from a full rite at
+  `/breath`, with cadence presets (Square, Calm, Serpent, Triangle, Dragon) and span
+  presets; reuses the rite player's bells/haptics and wake lock, and can inscribe a
+  session to the journal. (`src/views/breath.ts`, `createBreathPacer` in `src/components/timer.ts`)
 
 ---
 
@@ -50,9 +54,6 @@ with the app's design.
   (`breath`/`invocation`/`meditation`/`gesture`), save to IndexedDB, run in the same
   player. *Hook:* reuse `RitualStep` + `src/components/timer.ts`; persist like
   `src/state/journal.ts`; new route (e.g. `/forge`).
-- **Standalone breath trainer** *(S)* — The breath pacer decoupled from a full rite,
-  with cadence presets. *Hook:* `createBreathPacer` already stands alone in
-  `src/components/timer.ts`.
 - **Ritual reminders** *(M)* — Set an intention for a working at a chosen time via the
   Notifications API. *Hook:* requires notification permission flow; pairs with lunar/
   planetary timing.

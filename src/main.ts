@@ -20,12 +20,14 @@ import { createRitualView } from './views/ritual';
 import { createJournalView } from './views/journal';
 import { createAboutView } from './views/about';
 import { createSealView } from './views/seal';
+import { createBreathView } from './views/breath';
 
 // --- Routes ---------------------------------------------------------------
 route('/', createTreeView);
 route('/qlipha/:id', createQliphaView);
 route('/tunnel/:id', createTunnelView);
 route('/ritual/:id', createRitualView);
+route('/breath', createBreathView);
 route('/seal', createSealView);
 route('/journal', createJournalView);
 route('/about', createAboutView);
