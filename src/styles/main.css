@@ -1774,3 +1774,123 @@ body[data-shell] .brand-mark {
     grid-template-columns: 1fr;
   }
 }
+
+/* Breath pacer — the standalone trainer. */
+.view-breath header {
+  text-align: center;
+}
+.breath-stage {
+  min-height: 40vh;
+}
+.breath-setup {
+  max-width: 34rem;
+  margin: 2rem auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+}
+.breath-group {
+  width: 100%;
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  padding: 1.1rem 1.2rem 1.3rem;
+  background: var(--panel-deep);
+}
+.breath-group legend {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rubric-bright);
+  padding: 0 0.6rem;
+}
+.breath-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+}
+.breath-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.55rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 5px;
+  color: var(--ink-body);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.breath-chip:hover {
+  border-color: var(--gilt);
+  color: var(--gilt-bright);
+}
+.breath-chip.on {
+  border-color: var(--gilt);
+  color: var(--gilt-bright);
+  box-shadow: var(--gild-glow);
+}
+.breath-chip-name {
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+}
+.breath-chip-pattern {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+}
+.breath-chips-span .breath-chip {
+  flex-direction: row;
+  font-size: 0.92rem;
+}
+.breath-note {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-style: italic;
+  color: var(--ink-dim);
+  min-height: 1.2em;
+}
+.breath-active {
+  text-align: center;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+.breath-readout {
+  font-family: var(--font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: var(--gilt-bright);
+}
+.breath-pacer-slot {
+  display: flex;
+  justify-content: center;
+  margin: 2.2rem 0 1.4rem;
+}
+.breath-remaining {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin: 0;
+}
+.breath-done {
+  text-align: center;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+.breath-done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-top: 1.6rem;
+}
+.breath-saved {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--gilt);
+}

@@ -9,6 +9,7 @@ import { createRitualView } from '../src/views/ritual';
 import { createJournalView } from '../src/views/journal';
 import { createAboutView } from '../src/views/about';
 import { createSealView } from '../src/views/seal';
+import { createBreathView } from '../src/views/breath';
 import { buildNav } from '../src/components/nav';
 import { sigilSvg, sigilSvgStandalone, sigilGeometry } from '../src/components/sigil';
 import { createSigilTracer } from '../src/components/sigil-trace';
@@ -191,6 +192,7 @@ mountView('tunnel(unknown)', createTunnelView, { id: 'nope' });
 mountView('ritual(rite-lilith)', createRitualView, { id: 'rite-lilith' });
 mountView('ritual(unknown)', createRitualView, { id: 'nope' });
 mountView('seal', createSealView);
+mountView('breath', createBreathView);
 mountView('journal', createJournalView);
 mountView('about', createAboutView);
 

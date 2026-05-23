@@ -13,6 +13,7 @@ export function buildNav(): HTMLElement {
     </a>
     <div class="nav-links">
       <a href="#/" data-nav="/">Tree</a>
+      <a href="#/breath" data-nav="/breath">Breath</a>
       <a href="#/seal" data-nav="/seal">Seal</a>
       <a href="#/journal" data-nav="/journal">Journal</a>
       <a href="#/about" data-nav="/about">Mysteries</a>
