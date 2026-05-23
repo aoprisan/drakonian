@@ -1894,3 +1894,62 @@ body[data-shell] .brand-mark {
   font-size: 0.9rem;
   color: var(--gilt);
 }
+
+/* =========================================================================
+   Update prompt — a new revision of the codex awaits
+   ========================================================================= */
+.update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  z-index: 8;
+  transform: translate(-50%, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.4rem;
+  max-width: min(34rem, calc(100vw - 2rem));
+  padding: 0.85rem 1.2rem;
+  background: linear-gradient(180deg, var(--panel), var(--panel-deep));
+  border: 1px solid var(--gilt-deep);
+  border-top: 3px solid var(--rubric);
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 3px var(--panel-deep), inset 0 0 0 4px rgba(124, 92, 37, 0.45),
+    0 16px 44px -18px #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.update-banner.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+.update-banner-text {
+  margin: 0;
+  flex: 1 1 14rem;
+  font-style: italic;
+  color: var(--ink-body);
+}
+.update-banner-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex: 0 0 auto;
+}
+.update-banner .primary-btn,
+.update-banner .ghost-btn {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.74rem;
+}
+@media (max-width: 32rem) {
+  .update-banner {
+    left: 1rem;
+    right: 1rem;
+    transform: translateY(1.5rem);
+    max-width: none;
+  }
+  .update-banner.visible {
+    transform: translateY(0);
+  }
+}
