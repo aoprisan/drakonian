@@ -24,15 +24,19 @@ with the app's design.
 - **Lunar phase awareness** — local moon-phase maths drive a phase banner on the tree;
   the dark moon favours the gate of Gamaliel, and the moon's glow swells with its
   illumination. (`src/sys/lunar.ts`, `src/views/tree.ts`)
+- **Spoken invocation (TTS)** — an opt-in "Spoken invocation" toggle reads each rite
+  step aloud via the Web Speech API for a hands-free, eyes-closed working; speech is
+  cancelled on step change, completion, and leaving the rite.
+  (`src/sys/speech.ts`, `src/views/ritual.ts`, `tts` flag in `src/state/store.ts`)
 
 ---
 
 ## Top picks next
 
-1. **Spoken invocation (TTS)** — biggest usability win for the dark-room use case.
-2. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
-3. **Planetary hours** — pairs naturally with the now-shipped lunar awareness.
-4. **Custom rite builder** — turns a fixed grimoire into a personal one.
+1. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
+2. **Planetary hours** — pairs naturally with the now-shipped lunar awareness.
+3. **Custom rite builder** — turns a fixed grimoire into a personal one.
+4. **Voice selection for TTS** — let the practitioner pick among the device's voices.
 
 ---
 
@@ -42,9 +46,6 @@ with the app's design.
   from optional geolocation and show "now is the hour of Saturn — Satariel stands
   open." *Hook:* `Qlipha.planet` in `src/data/qliphoth.ts`; display on
   `src/views/qlipha.ts`.
-- **Spoken invocation (TTS)** *(M)* — Read each `RitualStep.text` aloud via the Web
-  Speech API so the rite works hands-free, eyes closed. *Hook:* add a `tts` flag to
-  `Ambience` (`src/state/store.ts`); speak in `src/views/ritual.ts` `renderStep`.
 - **Custom rite builder** *(L)* — Compose a working from the existing step primitives
   (`breath`/`invocation`/`meditation`/`gesture`), save to IndexedDB, run in the same
   player. *Hook:* reuse `RitualStep` + `src/components/timer.ts`; persist like
