@@ -63,9 +63,17 @@ export function createSigilTracer(
   let progressLen = 0;
   let tracing = false;
   let lastIdx = 0;
+  let sampleStep = 1.6; // viewBox units between samples; set when sampling
 
-  const TOL = 11; // forgiveness radius in viewBox units
-  const LOOKAHEAD = 10; // how many samples ahead the pointer may reach per move
+  const TOL = 12; // forgiveness radius in viewBox units
+  // A fast flick can leap a whole segment (sigil lines jump clear across the
+  // circle) between two pointermove events, so the forward search must reach
+  // at least one segment ahead — otherwise the pointer outruns the window and
+  // progress stalls for good. Expressed in viewBox units, density-independent.
+  const NEAR_LEN = 72;
+  // If the pointer still outran the near window, scan the rest of the path with
+  // a tighter tolerance so progress rejoins the line instead of freezing.
+  const CATCHUP_TOL = 8;
 
   // jsdom and reduced-motion users can't trace; offer a single tap instead.
   const geometryOk =
@@ -104,6 +112,7 @@ export function createSigilTracer(
     progress.style.strokeDasharray = String(totalLen);
     progress.style.strokeDashoffset = String(totalLen);
     const count = Math.max(48, Math.round(totalLen / 1.6));
+    sampleStep = totalLen / count;
     const out: Sample[] = [];
     for (let i = 0; i <= count; i++) {
       const len = (i / count) * totalLen;
@@ -126,19 +135,27 @@ export function createSigilTracer(
     progress.style.strokeDashoffset = String(Math.max(0, totalLen - len));
   }
 
-  function advance(px: number, py: number) {
-    const s = ensureSamples();
-    const end = Math.min(s.length - 1, lastIdx + LOOKAHEAD);
+  function nearest(s: Sample[], px: number, py: number, from: number, to: number, tol: number) {
     let bestIdx = -1;
-    let bestDist = TOL;
-    for (let i = lastIdx; i <= end; i++) {
-      const dx = s[i].x - px;
-      const dy = s[i].y - py;
-      const d = Math.hypot(dx, dy);
+    let bestDist = tol;
+    for (let i = from; i <= to; i++) {
+      const d = Math.hypot(s[i].x - px, s[i].y - py);
       if (d <= bestDist) {
         bestDist = d;
         bestIdx = i;
       }
+    }
+    return bestIdx;
+  }
+
+  function advance(px: number, py: number) {
+    const s = ensureSamples();
+    const near = Math.min(s.length - 1, lastIdx + Math.ceil(NEAR_LEN / sampleStep));
+    let bestIdx = nearest(s, px, py, lastIdx, near, TOL);
+    // Pointer outran the near window (a fast flick): scan the rest of the path
+    // with a tighter tolerance so progress catches up rather than stalling.
+    if (bestIdx < 0 && near < s.length - 1) {
+      bestIdx = nearest(s, px, py, near + 1, s.length - 1, CATCHUP_TOL);
     }
     if (bestIdx >= 0) {
       lastIdx = bestIdx;
