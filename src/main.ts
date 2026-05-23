@@ -7,7 +7,6 @@ import '@fontsource/eb-garamond/500.css';
 import '@fontsource/eb-garamond/400-italic.css';
 import './styles/main.css';
 
-import { registerSW } from 'virtual:pwa-register';
 import { route, fallback, startRouter } from './router';
 import { buildNav } from './components/nav';
 import { startSmoke } from './fx/smoke';
@@ -21,6 +20,7 @@ import { createJournalView } from './views/journal';
 import { createAboutView } from './views/about';
 import { createSealView } from './views/seal';
 import { createBreathView } from './views/breath';
+import { initUpdatePrompt } from './sys/update';
 
 // --- Routes ---------------------------------------------------------------
 route('/', createTreeView);
@@ -46,4 +46,5 @@ void loadPersisted();
 startRouter(app);
 
 // --- PWA ------------------------------------------------------------------
-registerSW({ immediate: true });
+// Prompt the reader before applying a new revision (see ./sys/update).
+initUpdatePrompt();
