@@ -65,7 +65,7 @@ export function createSigilTracer(
   let lastIdx = 0;
   let sampleStep = 1.6; // viewBox units between samples; set when sampling
 
-  const TOL = 12; // forgiveness radius in viewBox units
+  const TOL = 16; // forgiveness radius in viewBox units — generous on purpose
   // A fast flick can leap a whole segment (sigil lines jump clear across the
   // circle) between two pointermove events, so the forward search must reach
   // at least one segment ahead — otherwise the pointer outruns the window and
@@ -73,7 +73,10 @@ export function createSigilTracer(
   const NEAR_LEN = 72;
   // If the pointer still outran the near window, scan the rest of the path with
   // a tighter tolerance so progress rejoins the line instead of freezing.
-  const CATCHUP_TOL = 8;
+  const CATCHUP_TOL = 10;
+  // Lighting the sigil is a focusing aid, never a gate, so most of the way
+  // round is enough — the last sliver back to the start need not be exact.
+  const COMPLETE_AT = 0.85;
 
   // jsdom and reduced-motion users can't trace; offer a single tap instead.
   const geometryOk =
@@ -160,7 +163,7 @@ export function createSigilTracer(
     if (bestIdx >= 0) {
       lastIdx = bestIdx;
       setProgress(s[bestIdx].len);
-      if (progressLen >= totalLen * 0.92) complete();
+      if (progressLen >= totalLen * COMPLETE_AT) complete();
     }
   }
 
@@ -201,11 +204,10 @@ export function createSigilTracer(
     } catch {
       /* ignore */
     }
-    // Slipped off before lighting it: ease back to the start so it can be retried.
-    if (!done) {
-      lastIdx = 0;
-      setProgress(0);
-    }
+    // Lifting keeps the progress drawn so far: the trace resumes from where it
+    // left off on the next contact rather than snapping back to the start, so a
+    // long sigil can be lit over several relaxed strokes.
+    if (!done && progressLen > 0) hint.textContent = 'Keep tracing — lift and continue as you like.';
   }
 
   hint.textContent = 'Trace the sigil from the bright mark to focus.';
