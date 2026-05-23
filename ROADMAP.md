@@ -15,6 +15,12 @@ with the app's design.
 - **Tunnels of Set** — the 22 tunnels on the tree's edges + `/tunnel/:id` view.
   (`src/data/tunnels.ts`, `src/views/tunnel.ts`)
 - **Per-shell theming** — the UI takes on each gate's hue. (`src/fx/theme.ts`)
+- **Sigil tracing** — animated draw plus a "trace the sigil" pointer exercise in the
+  rite intro; optional, never gates the rite, taps to focus where pointer tracing is
+  unavailable. (`src/components/sigil-trace.ts`, `src/views/ritual.ts`)
+- **Personal seal generator** — a sigil derived deterministically from a magical
+  name/intent, exported to PNG and optionally inscribed in the journal.
+  (`src/views/seal.ts`, `sigilSvgStandalone` in `src/components/sigil.ts`)
 
 ---
 
@@ -55,12 +61,6 @@ with the app's design.
 
 ## Content & the Tree
 
-- **Sigil tracing** *(M)* — Animate the sigil draw, then offer a "trace the sigil"
-  pointer interaction as a focusing exercise before a rite. *Hook:* `src/components/sigil.ts`
-  already emits the path; capture pointer movement over `.sigil-line`.
-- **Personal seal generator** *(M)* — Derive a unique sigil deterministically from the
-  practitioner's magical name/intent; export as an image. *Hook:* reuse `seedFrom()` in
-  `src/components/sigil.ts`; serialize the SVG to PNG via canvas.
 - **Glossary + name pronunciation** *(M)* — Tap-to-define Qabalistic/Draconian terms in
   the prose; TTS or tones for ruler/divine names. *Hook:* a terms map; wrap terms in
   `src/views/qlipha.ts` and `src/views/about.ts` prose.

@@ -8,8 +8,10 @@ import { createTunnelView } from '../src/views/tunnel';
 import { createRitualView } from '../src/views/ritual';
 import { createJournalView } from '../src/views/journal';
 import { createAboutView } from '../src/views/about';
+import { createSealView } from '../src/views/seal';
 import { buildNav } from '../src/components/nav';
-import { sigilSvg } from '../src/components/sigil';
+import { sigilSvg, sigilSvgStandalone, sigilGeometry } from '../src/components/sigil';
+import { createSigilTracer } from '../src/components/sigil-trace';
 import { buildTreeSvg } from '../src/components/tree-svg';
 import { QLIPHOTH, TREE_PATHS, ASCENT, getQlipha } from '../src/data/qliphoth';
 import { TUNNELS, getTunnel, getTunnelByPair } from '../src/data/tunnels';
@@ -79,7 +81,35 @@ check('sigilSvg produces an <svg> for each shell', () => {
   for (const q of QLIPHOTH) {
     const s = sigilSvg(q.sigil);
     if (!s.includes('<svg')) throw new Error(`${q.id}: no svg`);
+    if (!s.includes('class="sigil-line"')) throw new Error(`${q.id}: no sigil line`);
   }
+});
+
+check('sigilGeometry is deterministic and yields a path', () => {
+  const a = sigilGeometry('lilith');
+  const b = sigilGeometry('lilith');
+  if (a.sigilPath !== b.sigilPath) throw new Error('non-deterministic path');
+  if (a.linePts.length < 5) throw new Error('too few line points');
+  if (sigilGeometry('thaumiel').sigilPath === a.sigilPath) throw new Error('keys not distinct');
+  return `${a.linePts.length} points`;
+});
+
+check('sigilSvgStandalone inlines styles + optional caption', () => {
+  const plain = sigilSvgStandalone('seal::test::');
+  if (!plain.includes('xmlns=')) throw new Error('not standalone (no xmlns)');
+  if (plain.includes('class="sigil-line"')) throw new Error('should not rely on CSS classes');
+  const captioned = sigilSvgStandalone('seal::test::', { caption: 'Vovin & <Dragon>' });
+  if (!captioned.includes('<text')) throw new Error('caption missing');
+  if (captioned.includes('<Dragon>')) throw new Error('caption not XML-escaped');
+});
+
+check('createSigilTracer mounts (tap fallback under jsdom)', () => {
+  const t = createSigilTracer('lilith', { size: 180 });
+  if (!t.el.querySelector('svg')) throw new Error('no svg');
+  if (!t.el.classList.contains('trace-tap')) throw new Error('expected tap fallback in jsdom');
+  t.el.querySelector('svg')!.dispatchEvent(new Event('click'));
+  if (!t.el.classList.contains('traced')) throw new Error('tap did not complete trace');
+  t.destroy();
 });
 
 check('buildTreeSvg yields 10 nodes + 22 paths + 22 tunnel links', () => {
@@ -119,6 +149,7 @@ mountView('tunnel(thantifaxath)', createTunnelView, { id: 'thantifaxath' });
 mountView('tunnel(unknown)', createTunnelView, { id: 'nope' });
 mountView('ritual(rite-lilith)', createRitualView, { id: 'rite-lilith' });
 mountView('ritual(unknown)', createRitualView, { id: 'nope' });
+mountView('seal', createSealView);
 mountView('journal', createJournalView);
 mountView('about', createAboutView);
 

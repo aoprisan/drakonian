@@ -2,6 +2,7 @@ import type { View, Ritual, RitualStep } from '../types';
 import { getRitual } from '../data/rituals';
 import { getQlipha } from '../data/qliphoth';
 import { createBreathPacer, createCountdown, type Pacer } from '../components/timer';
+import { createSigilTracer, type SigilTracer } from '../components/sigil-trace';
 import { startDrone, stopDrone, isRunning } from '../audio/drone';
 import { resumeAudio } from '../audio/context';
 import { cue } from '../audio/cues';
@@ -17,8 +18,14 @@ function escapeHtml(s: string): string {
 
 export function createRitualView(): View {
   let pacer: Pacer | null = null;
+  let tracer: SigilTracer | null = null;
   let unsubAmbience: (() => void) | null = null;
   let droneStartedHere = false;
+
+  function clearTracer() {
+    tracer?.destroy();
+    tracer = null;
+  }
 
   function teardownAudio() {
     if (droneStartedHere) {
@@ -55,8 +62,10 @@ export function createRitualView(): View {
 
       function renderIntro() {
         clearPacer();
+        clearTracer();
         stage.innerHTML = `
           <header class="rite-intro">
+            <div class="rite-trace-slot"></div>
             <p class="rite-kicker">Guided Rite</p>
             <h1 class="display-title">${escapeHtml(ritual!.title)}</h1>
             <p class="rite-intent">${escapeHtml(ritual!.intent)}</p>
@@ -74,6 +83,20 @@ export function createRitualView(): View {
             </div>
             <p class="rite-warn">Find a dark, quiet place. The rite advances at your pace.</p>
           </header>`;
+
+        // Trace-the-sigil focusing exercise. Optional — never gates the rite.
+        if (qlipha?.sigil) {
+          const slot = stage.querySelector<HTMLElement>('.rite-trace-slot')!;
+          const header = stage.querySelector<HTMLElement>('.rite-intro')!;
+          tracer = createSigilTracer(qlipha.sigil, {
+            size: 200,
+            onComplete: () => {
+              header.classList.add('rite-focused');
+              cue.step();
+            },
+          });
+          slot.appendChild(tracer.el);
+        }
 
         const droneInput = stage.querySelector<HTMLInputElement>('[data-toggle="drone"]')!;
         droneInput.addEventListener('change', () => {
@@ -105,6 +128,7 @@ export function createRitualView(): View {
 
       function renderStep() {
         clearPacer();
+        clearTracer();
         const step = ritual!.steps[index];
         const n = index + 1;
         const total = ritual!.steps.length;
@@ -211,6 +235,7 @@ export function createRitualView(): View {
     destroy() {
       pacer?.destroy();
       pacer = null;
+      clearTracer();
       unsubAmbience?.();
       unsubAmbience = null;
       releaseWakeLock();
