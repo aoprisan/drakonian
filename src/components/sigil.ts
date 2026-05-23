@@ -26,9 +26,9 @@ function pointOnCircle(angle: number, radius: number): [number, number] {
 }
 
 export interface SigilGeometry {
-  /** Ordered points of the wandering line — the path the eye (and finger) follows. */
+  /** Ordered vertices of the star the eye (and finger) follows, closing on the first. */
   linePts: [number, number][];
-  /** SVG path data for the wandering line. */
+  /** SVG path data for the closed star polygon. */
   sigilPath: string;
   /** Inner ward polygon vertices. */
   innerPts: [number, number][];
@@ -36,18 +36,36 @@ export interface SigilGeometry {
   spokes: [number, number, number, number][];
 }
 
+// Single-stroke star polygons {n/k}: connect every k-th of n points evenly
+// spaced on a circle. With gcd(n, k) === 1 the stroke visits every vertex once
+// and closes on itself — a balanced, deliberate figure rather than a random
+// scribble. Restricted to 2 <= k <= n/2 (k and n−k draw the same star).
+const STARS: ReadonlyArray<readonly [number, number]> = [
+  [5, 2], // pentagram
+  [7, 2], // heptagram, wide
+  [7, 3], // heptagram, sharp
+  [8, 3], // octagram
+  [9, 2], // enneagram, wide
+  [9, 4], // enneagram, sharp
+  [11, 3],
+  [11, 4],
+  [12, 5],
+];
+
 /**
  * The raw geometry behind a sigil, deterministic in `key`. Exposed so the
- * tracer can follow the line and the seal exporter can re-skin it. The order
- * of PRNG draws here is load-bearing: it must match the historical sequence so
- * every shell's sigil stays visually identical across releases.
+ * tracer can follow the line and the seal exporter can re-skin it. The order of
+ * PRNG draws is load-bearing: it must stay fixed so a given key always raises
+ * the same seal. Orientation and the inner ward are drawn before the star so
+ * that the small fixed set of shells spreads across distinct star families.
  */
 export function sigilGeometry(key: string): SigilGeometry {
   const rand = seedFrom(key);
-  const nodes = 5 + Math.floor(rand() * 4); // 5..8 outer points
   const outerR = 34;
-  const innerR = 14 + rand() * 8;
   const startAngle = rand() * Math.PI * 2;
+  const innerR = 11 + rand() * 6;
+  const innerSides = 3 + Math.floor(rand() * 3); // 3..5
+  const [nodes, step] = STARS[Math.floor(rand() * STARS.length)];
 
   const outerPts: [number, number][] = [];
   for (let i = 0; i < nodes; i++) {
@@ -55,30 +73,26 @@ export function sigilGeometry(key: string): SigilGeometry {
     outerPts.push(pointOnCircle(a, outerR));
   }
 
-  // A wandering line connecting points in a pseudo-random order: the sigil path.
-  const order = [...outerPts.keys()];
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
+  // Walk the star: every k-th vertex, looping back to the first.
+  const linePts: [number, number][] = [];
+  for (let i = 0; i < nodes; i++) {
+    linePts.push(outerPts[(i * step) % nodes]);
   }
-  const linePts = order.map((i) => outerPts[i]);
   const sigilPath =
-    'M ' + linePts.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join(' L ');
+    'M ' + linePts.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join(' L ') + ' Z';
 
-  // Inner polygon for an inner ward.
-  const innerSides = 3 + Math.floor(rand() * 3); // 3..5
-  const innerStart = rand() * Math.PI * 2;
+  // Inner ward: a small regular polygon, nested point-between-points.
+  const innerStart = startAngle + Math.PI / innerSides;
   const innerPts: [number, number][] = [];
   for (let i = 0; i < innerSides; i++) {
     const a = innerStart + (i / innerSides) * Math.PI * 2;
     innerPts.push(pointOnCircle(a, innerR));
   }
 
-  // A few radial spokes.
+  // Radial spokes from each inner-ward vertex out to the warded circle.
   const spokes: [number, number, number, number][] = [];
-  const spokeCount = 2 + Math.floor(rand() * 3);
-  for (let i = 0; i < spokeCount; i++) {
-    const a = rand() * Math.PI * 2;
+  for (let i = 0; i < innerSides; i++) {
+    const a = innerStart + (i / innerSides) * Math.PI * 2;
     const [x1, y1] = pointOnCircle(a, innerR);
     const [x2, y2] = pointOnCircle(a, outerR);
     spokes.push([x1, y1, x2, y2]);
