@@ -19,12 +19,14 @@ import { createTunnelView } from './views/tunnel';
 import { createRitualView } from './views/ritual';
 import { createJournalView } from './views/journal';
 import { createAboutView } from './views/about';
+import { createSealView } from './views/seal';
 
 // --- Routes ---------------------------------------------------------------
 route('/', createTreeView);
 route('/qlipha/:id', createQliphaView);
 route('/tunnel/:id', createTunnelView);
 route('/ritual/:id', createRitualView);
+route('/seal', createSealView);
 route('/journal', createJournalView);
 route('/about', createAboutView);
 fallback(createTreeView);

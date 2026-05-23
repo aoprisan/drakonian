@@ -39,11 +39,18 @@ export interface Ambience {
   candleMode: boolean;
   /** Struck-bell tones and haptic pulses that mark rite transitions and breath. */
   cues: boolean;
+  /** Read each ritual step aloud via the Web Speech API (hands-free working). */
+  tts: boolean;
 }
 
 const AMBIENCE_KEY = 'drakonian:ambience';
 
-const AMBIENCE_DEFAULTS: Ambience = { droneEnabled: true, candleMode: false, cues: true };
+const AMBIENCE_DEFAULTS: Ambience = {
+  droneEnabled: true,
+  candleMode: false,
+  cues: true,
+  tts: false,
+};
 
 function loadAmbience(): Ambience {
   try {

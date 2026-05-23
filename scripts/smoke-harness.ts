@@ -8,9 +8,14 @@ import { createTunnelView } from '../src/views/tunnel';
 import { createRitualView } from '../src/views/ritual';
 import { createJournalView } from '../src/views/journal';
 import { createAboutView } from '../src/views/about';
+import { createSealView } from '../src/views/seal';
 import { buildNav } from '../src/components/nav';
-import { sigilSvg } from '../src/components/sigil';
+import { sigilSvg, sigilSvgStandalone, sigilGeometry } from '../src/components/sigil';
+import { createSigilTracer } from '../src/components/sigil-trace';
 import { buildTreeSvg } from '../src/components/tree-svg';
+import { moonPhase, moonGlyphSvg, lunarOmen } from '../src/sys/lunar';
+import { speechSupported, speak, stopSpeaking } from '../src/sys/speech';
+import { ambience } from '../src/state/store';
 import { QLIPHOTH, TREE_PATHS, ASCENT, getQlipha } from '../src/data/qliphoth';
 import { TUNNELS, getTunnel, getTunnelByPair } from '../src/data/tunnels';
 import { DEGREES } from '../src/data/degrees';
@@ -79,7 +84,73 @@ check('sigilSvg produces an <svg> for each shell', () => {
   for (const q of QLIPHOTH) {
     const s = sigilSvg(q.sigil);
     if (!s.includes('<svg')) throw new Error(`${q.id}: no svg`);
+    if (!s.includes('class="sigil-line"')) throw new Error(`${q.id}: no sigil line`);
   }
+});
+
+check('sigilGeometry is deterministic and yields a path', () => {
+  const a = sigilGeometry('lilith');
+  const b = sigilGeometry('lilith');
+  if (a.sigilPath !== b.sigilPath) throw new Error('non-deterministic path');
+  if (a.linePts.length < 5) throw new Error('too few line points');
+  if (sigilGeometry('thaumiel').sigilPath === a.sigilPath) throw new Error('keys not distinct');
+  return `${a.linePts.length} points`;
+});
+
+check('sigilSvgStandalone inlines styles + optional caption', () => {
+  const plain = sigilSvgStandalone('seal::test::');
+  if (!plain.includes('xmlns=')) throw new Error('not standalone (no xmlns)');
+  if (plain.includes('class="sigil-line"')) throw new Error('should not rely on CSS classes');
+  const captioned = sigilSvgStandalone('seal::test::', { caption: 'Vovin & <Dragon>' });
+  if (!captioned.includes('<text')) throw new Error('caption missing');
+  if (captioned.includes('<Dragon>')) throw new Error('caption not XML-escaped');
+});
+
+check('createSigilTracer mounts (tap fallback under jsdom)', () => {
+  const t = createSigilTracer('lilith', { size: 180 });
+  if (!t.el.querySelector('svg')) throw new Error('no svg');
+  if (!t.el.classList.contains('trace-tap')) throw new Error('expected tap fallback in jsdom');
+  t.el.querySelector('svg')!.dispatchEvent(new Event('click'));
+  if (!t.el.classList.contains('traced')) throw new Error('tap did not complete trace');
+  t.destroy();
+});
+
+check('moonPhase: known new/full epochs read correctly', () => {
+  const SYNODIC = 29.530588853 * 86_400_000;
+  const newMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+  const fullMoon = new Date(newMoon.getTime() + SYNODIC / 2);
+  const n = moonPhase(newMoon);
+  const f = moonPhase(fullMoon);
+  if (n.name !== 'New Moon') throw new Error(`new → ${n.name}`);
+  if (n.illumination > 0.02) throw new Error(`new illum ${n.illumination}`);
+  if (f.name !== 'Full Moon') throw new Error(`full → ${f.name}`);
+  if (f.illumination < 0.98) throw new Error(`full illum ${f.illumination}`);
+  if (!moonPhase(new Date(newMoon.getTime() + SYNODIC * 0.25)).waxing) throw new Error('quarter not waxing');
+  return `${n.name} / ${f.name}`;
+});
+
+check('lunarOmen favours Gamaliel at the dark moon', () => {
+  const newMoon = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
+  if (lunarOmen(moonPhase(newMoon)).qliphaId !== 'gamaliel') throw new Error('new moon should favour gamaliel');
+  const full = moonPhase(new Date(newMoon.getTime() + 29.530588853 * 86_400_000 / 2));
+  if (lunarOmen(full).qliphaId) throw new Error('full moon should favour no shell');
+});
+
+check('moonGlyphSvg renders a disc + lit limb', () => {
+  const svg = moonGlyphSvg(moonPhase(new Date()));
+  if (!svg.includes('<svg')) throw new Error('no svg');
+  if (!svg.includes('class="moon-lit"')) throw new Error('no lit limb');
+});
+
+check('speech: no-ops safely without the Web Speech API', () => {
+  if (speechSupported()) throw new Error('jsdom should not report speech support');
+  speak('the gate is open'); // must not throw
+  stopSpeaking(); // must not throw
+});
+
+check('ambience: TTS is off by default', () => {
+  if ('tts' in ambience.get() === false) throw new Error('tts flag missing from ambience');
+  if (ambience.get().tts !== false) throw new Error('tts should default off');
 });
 
 check('buildTreeSvg yields 10 nodes + 22 paths + 22 tunnel links', () => {
@@ -119,6 +190,7 @@ mountView('tunnel(thantifaxath)', createTunnelView, { id: 'thantifaxath' });
 mountView('tunnel(unknown)', createTunnelView, { id: 'nope' });
 mountView('ritual(rite-lilith)', createRitualView, { id: 'rite-lilith' });
 mountView('ritual(unknown)', createRitualView, { id: 'nope' });
+mountView('seal', createSealView);
 mountView('journal', createJournalView);
 mountView('about', createAboutView);
 

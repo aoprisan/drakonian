@@ -15,31 +15,37 @@ with the app's design.
 - **Tunnels of Set** — the 22 tunnels on the tree's edges + `/tunnel/:id` view.
   (`src/data/tunnels.ts`, `src/views/tunnel.ts`)
 - **Per-shell theming** — the UI takes on each gate's hue. (`src/fx/theme.ts`)
+- **Sigil tracing** — animated draw plus a "trace the sigil" pointer exercise in the
+  rite intro; optional, never gates the rite, taps to focus where pointer tracing is
+  unavailable. (`src/components/sigil-trace.ts`, `src/views/ritual.ts`)
+- **Personal seal generator** — a sigil derived deterministically from a magical
+  name/intent, exported to PNG and optionally inscribed in the journal.
+  (`src/views/seal.ts`, `sigilSvgStandalone` in `src/components/sigil.ts`)
+- **Lunar phase awareness** — local moon-phase maths drive a phase banner on the tree;
+  the dark moon favours the gate of Gamaliel, and the moon's glow swells with its
+  illumination. (`src/sys/lunar.ts`, `src/views/tree.ts`)
+- **Spoken invocation (TTS)** — an opt-in "Spoken invocation" toggle reads each rite
+  step aloud via the Web Speech API for a hands-free, eyes-closed working; speech is
+  cancelled on step change, completion, and leaving the rite.
+  (`src/sys/speech.ts`, `src/views/ritual.ts`, `tts` flag in `src/state/store.ts`)
 
 ---
 
 ## Top picks next
 
-1. **Lunar phase awareness** — most atmosphere for least code; the Nightside is lunar.
-2. **Spoken invocation (TTS)** — biggest usability win for the dark-room use case.
-3. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
-4. **Custom rite builder** — turns a fixed grimoire into a personal one.
+1. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
+2. **Planetary hours** — pairs naturally with the now-shipped lunar awareness.
+3. **Custom rite builder** — turns a fixed grimoire into a personal one.
+4. **Voice selection for TTS** — let the practitioner pick among the device's voices.
 
 ---
 
 ## Ritual practice depth
 
-- **Lunar phase awareness** *(S)* — Compute the moon phase locally (pure math, no
-  network) and surface "the dark moon favours the gate of Gamaliel" on the tree;
-  optionally tint by phase. *Hook:* new util in `src/sys/`, consumed by
-  `src/views/tree.ts`; Gamaliel is the lunar shell.
 - **Planetary hours** *(M)* — Each shell carries a `planet`. Compute sunrise/sunset
   from optional geolocation and show "now is the hour of Saturn — Satariel stands
   open." *Hook:* `Qlipha.planet` in `src/data/qliphoth.ts`; display on
   `src/views/qlipha.ts`.
-- **Spoken invocation (TTS)** *(M)* — Read each `RitualStep.text` aloud via the Web
-  Speech API so the rite works hands-free, eyes closed. *Hook:* add a `tts` flag to
-  `Ambience` (`src/state/store.ts`); speak in `src/views/ritual.ts` `renderStep`.
 - **Custom rite builder** *(L)* — Compose a working from the existing step primitives
   (`breath`/`invocation`/`meditation`/`gesture`), save to IndexedDB, run in the same
   player. *Hook:* reuse `RitualStep` + `src/components/timer.ts`; persist like
@@ -55,12 +61,6 @@ with the app's design.
 
 ## Content & the Tree
 
-- **Sigil tracing** *(M)* — Animate the sigil draw, then offer a "trace the sigil"
-  pointer interaction as a focusing exercise before a rite. *Hook:* `src/components/sigil.ts`
-  already emits the path; capture pointer movement over `.sigil-line`.
-- **Personal seal generator** *(M)* — Derive a unique sigil deterministically from the
-  practitioner's magical name/intent; export as an image. *Hook:* reuse `seedFrom()` in
-  `src/components/sigil.ts`; serialize the SVG to PNG via canvas.
 - **Glossary + name pronunciation** *(M)* — Tap-to-define Qabalistic/Draconian terms in
   the prose; TTS or tones for ruler/divine names. *Hook:* a terms map; wrap terms in
   `src/views/qlipha.ts` and `src/views/about.ts` prose.
