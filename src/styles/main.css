@@ -374,8 +374,8 @@ button:disabled {
   stroke-linecap: round;
   stroke-linejoin: round;
   filter: drop-shadow(0 0 2px var(--gilt));
-  stroke-dasharray: 400;
-  stroke-dashoffset: 400;
+  stroke-dasharray: 820;
+  stroke-dashoffset: 820;
   animation: sigil-draw 2.6s ease forwards, sigil-breathe 5.5s ease-in-out 2.6s infinite;
 }
 .sigil-core {
