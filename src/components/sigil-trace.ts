@@ -2,10 +2,12 @@ import { sigilGeometry } from './sigil';
 import { prefersReducedMotion } from '../state/store';
 
 // A "trace the sigil" focusing exercise: the practitioner draws the shell's
-// glyph with finger or pointer before a rite. Progress is revealed along the
-// path as they trace it from the start mark to the end. Purely a focusing aid —
-// never a gate — and it degrades to a single tap where pointer tracing or SVG
-// geometry is unavailable (reduced-motion, jsdom).
+// glyph with finger or pointer before a rite. The shell shows a small sigil;
+// tapping it opens a large, dark overlay where the glyph is easy to draw. A
+// glowing cursor rides the line as it is traced, lighting it from the start
+// mark to the end. Purely a focusing aid — never a gate — and it degrades to a
+// single tap where pointer tracing or SVG geometry is unavailable
+// (reduced-motion, jsdom).
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -20,17 +22,36 @@ interface Sample {
   y: number;
 }
 
-export function createSigilTracer(
-  key: string,
-  opts: { size?: number; onComplete?: () => void } = {},
-): SigilTracer {
-  const size = opts.size ?? 200;
+// The bright start mark and a generous catch radius are forgiving on purpose.
+const TOL = 12; // spatial catch radius in viewBox units
+const START_TOL = 15; // a touch more forgiving to first grab the start mark
+// The cursor only ever crawls forward along the line within a small arc-length
+// window. Keeping the look-ahead under one star segment (the shortest is ~44
+// viewBox units) is what stops a held finger from snapping onto a *different*
+// segment that crosses nearby — the self-intersection teleport that made
+// "another line" light up. A small backward window forgives jitter.
+const LOOK_AHEAD = 38;
+const LOOK_BACK = 6;
+// Among points equally near the finger (e.g. at a crossing), prefer the one
+// closest in arc length to where we already are, so progress never jumps the
+// gap to a downstream pass through the same spot.
+const ARC_WEIGHT = 0.18;
+// Lighting the sigil is a focusing aid, never a gate, so most of the way round
+// is enough — the last sliver back to the start need not be exact.
+const COMPLETE_AT = 0.9;
+
+interface TraceSvg {
+  svg: SVGSVGElement;
+  progress: SVGPathElement;
+  startDot: SVGCircleElement;
+  cursor: SVGCircleElement;
+  startX: number;
+  startY: number;
+}
+
+function buildTraceSvg(key: string): TraceSvg {
   const { sigilPath, linePts } = sigilGeometry(key);
   const [startX, startY] = linePts[0];
-
-  const el = document.createElement('div');
-  el.className = 'sigil-tracer';
-  el.style.setProperty('--trace-size', `${size}px`);
 
   const svg = document.createElementNS(SVGNS, 'svg');
   svg.setAttribute('viewBox', '0 0 100 100');
@@ -55,73 +76,41 @@ export function createSigilTracer(
 
   const startDot = circle(startX, startY, 3.2, 'trace-start');
   svg.appendChild(startDot);
-  el.appendChild(svg);
+  // The cursor that rides the line; hidden until a trace is under way.
+  const cursor = circle(startX, startY, 3.4, 'trace-cursor');
+  svg.appendChild(cursor);
 
-  const hint = document.createElement('p');
-  hint.className = 'trace-hint';
-  hint.setAttribute('aria-live', 'polite');
-  el.appendChild(hint);
+  return { svg, progress, startDot, cursor, startX, startY };
+}
 
-  let done = false;
+function geometryOk(ts: TraceSvg): boolean {
+  const geo = ts.progress as SVGGeometryElement;
+  return (
+    typeof geo.getTotalLength === 'function' &&
+    typeof geo.getPointAtLength === 'function' &&
+    typeof ts.svg.getScreenCTM === 'function'
+  );
+}
+
+interface TraceEngine {
+  detach(): void;
+}
+
+// Wires pointer tracing onto a TraceSvg using a forward-only, locally-windowed
+// snap so the cursor rides the line and cannot leap across self-intersections.
+function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
+  const { svg, progress, cursor, startX, startY } = ts;
+  const geo = progress as SVGGeometryElement;
+
   let samples: Sample[] | null = null;
   let totalLen = 0;
+  let sampleStep = 1.6;
   let progressLen = 0;
   let tracing = false;
-  let lastIdx = 0;
-  let sampleStep = 1.6; // viewBox units between samples; set when sampling
-
-  const TOL = 16; // forgiveness radius in viewBox units — generous on purpose
-  // A fast flick can leap a whole segment (sigil lines jump clear across the
-  // circle) between two pointermove events, so the forward search must reach
-  // at least one segment ahead — otherwise the pointer outruns the window and
-  // progress stalls for good. Expressed in viewBox units, density-independent.
-  const NEAR_LEN = 72;
-  // If the pointer still outran the near window, scan further ahead with a
-  // tighter tolerance so progress rejoins the line instead of freezing.
-  const CATCHUP_TOL = 10;
-  // …but never let one move leap most of the way round. The star is a closed
-  // figure, so its final samples sit back on the start mark; without a bound a
-  // small wiggle near the start would match those wrap-around samples and
-  // complete the trace at once. A fraction well under COMPLETE_AT still
-  // recovers any realistic fast flick (which leaps roughly one segment).
-  const MAX_JUMP_FRAC = 0.4;
-  // Lighting the sigil is a focusing aid, never a gate, so most of the way
-  // round is enough — the last sliver back to the start need not be exact.
-  const COMPLETE_AT = 0.85;
-
-  // jsdom and reduced-motion users can't trace; offer a single tap instead.
-  const geometryOk =
-    typeof (progress as SVGGeometryElement).getTotalLength === 'function' &&
-    typeof (progress as SVGGeometryElement).getPointAtLength === 'function' &&
-    typeof (svg as SVGSVGElement).getScreenCTM === 'function';
-
-  function complete() {
-    if (done) return;
-    done = true;
-    tracing = false;
-    el.classList.add('traced');
-    progress.style.strokeDashoffset = '0';
-    hint.textContent = 'The sigil is lit. Begin when you are ready.';
-    opts.onComplete?.();
-  }
-
-  if (!geometryOk || prefersReducedMotion()) {
-    el.classList.add('trace-tap');
-    hint.textContent = 'Touch the sigil to focus, then begin.';
-    const onTap = () => complete();
-    svg.addEventListener('click', onTap);
-    return {
-      el,
-      destroy() {
-        svg.removeEventListener('click', onTap);
-        el.remove();
-      },
-    };
-  }
+  let done = false;
 
   function ensureSamples(): Sample[] {
     if (samples) return samples;
-    const geo = progress as SVGGeometryElement;
     totalLen = geo.getTotalLength();
     const count = Math.max(48, Math.round(totalLen / 1.6));
     sampleStep = totalLen / count;
@@ -142,57 +131,68 @@ export function createSigilTracer(
     return { x: p.x, y: p.y };
   }
 
+  function moveCursor(len: number) {
+    const pt = geo.getPointAtLength(len);
+    cursor.setAttribute('cx', String(pt.x));
+    cursor.setAttribute('cy', String(pt.y));
+  }
+
   function setProgress(len: number) {
     progressLen = len;
     const frac = totalLen > 0 ? len / totalLen : 0;
-    // Path is normalised to 100 units (see pathLength above): offset 100 hides
-    // the fill, 0 draws it whole.
+    // Path is normalised to 100 units (see pathLength): offset 100 hides the
+    // fill, 0 draws it whole.
     progress.style.strokeDashoffset = String(Math.max(0, 100 * (1 - frac)));
+    moveCursor(len);
   }
 
-  function nearest(s: Sample[], px: number, py: number, from: number, to: number, tol: number) {
-    let bestIdx = -1;
-    let bestDist = tol;
-    for (let i = from; i <= to; i++) {
-      const d = Math.hypot(s[i].x - px, s[i].y - py);
-      if (d <= bestDist) {
-        bestDist = d;
-        bestIdx = i;
-      }
-    }
-    return bestIdx;
+  function complete() {
+    if (done) return;
+    done = true;
+    tracing = false;
+    setProgress(totalLen);
+    svg.classList.add('traced');
+    onComplete();
   }
 
+  // Snap the finger to the nearest point on the line within a small forward
+  // window, then advance the cursor to it (never backward, never beyond the
+  // window — that is what keeps it on the segment under the finger).
   function advance(px: number, py: number) {
     const s = ensureSamples();
-    const near = Math.min(s.length - 1, lastIdx + Math.ceil(NEAR_LEN / sampleStep));
-    let bestIdx = nearest(s, px, py, lastIdx, near, TOL);
-    // Pointer outran the near window (a fast flick): scan a bounded distance
-    // further with a tighter tolerance so progress catches up rather than
-    // stalling — but not so far that a near-start wiggle wraps to the close.
-    if (bestIdx < 0 && near < s.length - 1) {
-      const reach = Math.min(s.length - 1, lastIdx + Math.ceil((s.length - 1) * MAX_JUMP_FRAC));
-      if (reach > near) bestIdx = nearest(s, px, py, near + 1, reach, CATCHUP_TOL);
+    const loLen = Math.max(0, progressLen - LOOK_BACK);
+    const hiLen = Math.min(totalLen, progressLen + LOOK_AHEAD);
+    const from = Math.max(0, Math.floor(loLen / sampleStep));
+    const to = Math.min(s.length - 1, Math.ceil(hiLen / sampleStep));
+    let best = -1;
+    let bestCost = Infinity;
+    for (let i = from; i <= to; i++) {
+      const d = Math.hypot(s[i].x - px, s[i].y - py);
+      if (d > TOL) continue;
+      const cost = d + ARC_WEIGHT * Math.max(0, s[i].len - progressLen);
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = i;
+      }
     }
-    if (bestIdx >= 0) {
-      lastIdx = bestIdx;
-      setProgress(s[bestIdx].len);
+    if (best >= 0) {
+      if (s[best].len > progressLen) setProgress(s[best].len);
       if (progressLen >= totalLen * COMPLETE_AT) complete();
     }
   }
 
-  function near(px: number, py: number, x: number, y: number): boolean {
-    return Math.hypot(px - x, py - y) <= TOL;
+  function nearStart(px: number, py: number): boolean {
+    return Math.hypot(px - startX, py - startY) <= START_TOL;
   }
 
   function onDown(ev: PointerEvent) {
     if (done) return;
     const p = svgPoint(ev);
     if (!p) return;
-    // Tracing must begin at the start mark.
-    if (lastIdx === 0 && !near(p.x, p.y, startX, startY)) return;
+    // Tracing must begin at the start mark (until some progress is made).
+    if (progressLen === 0 && !nearStart(p.x, p.y)) return;
     tracing = true;
-    el.classList.add('tracing');
+    svg.classList.add('tracing');
     try {
       svg.setPointerCapture(ev.pointerId);
     } catch {
@@ -212,31 +212,200 @@ export function createSigilTracer(
 
   function onUp(ev: PointerEvent) {
     tracing = false;
-    el.classList.remove('tracing');
+    svg.classList.remove('tracing');
     try {
       svg.releasePointerCapture(ev.pointerId);
     } catch {
       /* ignore */
     }
-    // Lifting keeps the progress drawn so far: the trace resumes from where it
-    // left off on the next contact rather than snapping back to the start, so a
-    // long sigil can be lit over several relaxed strokes.
-    if (!done && progressLen > 0) hint.textContent = 'Keep tracing — lift and continue as you like.';
   }
 
-  hint.textContent = 'Trace the sigil from the bright mark to focus.';
+  // Show the cursor parked on the start mark, ready to be picked up.
+  ensureSamples();
+  moveCursor(0);
+  cursor.classList.add('ready');
+
   svg.addEventListener('pointerdown', onDown);
   svg.addEventListener('pointermove', onMove);
   svg.addEventListener('pointerup', onUp);
   svg.addEventListener('pointercancel', onUp);
 
   return {
-    el,
-    destroy() {
+    detach() {
       svg.removeEventListener('pointerdown', onDown);
       svg.removeEventListener('pointermove', onMove);
       svg.removeEventListener('pointerup', onUp);
       svg.removeEventListener('pointercancel', onUp);
+    },
+  };
+}
+
+interface TraceOverlay {
+  close(): void;
+}
+
+// A dark, full-screen view with the glyph drawn large and easy to trace.
+function openTraceOverlay(
+  key: string,
+  opts: { onComplete: () => void; onClose: () => void },
+): TraceOverlay {
+  const prevFocus = document.activeElement as HTMLElement | null;
+
+  const root = document.createElement('div');
+  root.className = 'trace-overlay';
+  root.setAttribute('role', 'dialog');
+  root.setAttribute('aria-modal', 'true');
+  root.setAttribute('aria-label', 'Trace the sigil');
+
+  const panel = document.createElement('div');
+  panel.className = 'trace-overlay-panel';
+
+  const ts = buildTraceSvg(key);
+  ts.svg.classList.add('trace-svg-large');
+
+  const hint = document.createElement('p');
+  hint.className = 'trace-hint';
+  hint.setAttribute('aria-live', 'polite');
+  hint.textContent = 'Trace the sigil from the bright mark.';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'ghost-btn trace-overlay-close';
+  closeBtn.textContent = 'Done';
+
+  panel.appendChild(ts.svg);
+  panel.appendChild(hint);
+  panel.appendChild(closeBtn);
+  root.appendChild(panel);
+  document.body.appendChild(root);
+  document.body.classList.add('trace-overlay-open');
+
+  let closed = false;
+  let completeTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const engine = createTraceEngine(ts, () => {
+    hint.textContent = 'The sigil is lit.';
+    opts.onComplete();
+    completeTimer = setTimeout(close, 900);
+  });
+
+  function close() {
+    if (closed) return;
+    closed = true;
+    if (completeTimer) clearTimeout(completeTimer);
+    engine.detach();
+    document.removeEventListener('keydown', onKey);
+    document.body.classList.remove('trace-overlay-open');
+    root.remove();
+    prevFocus?.focus?.();
+    opts.onClose();
+  }
+
+  function onKey(ev: KeyboardEvent) {
+    if (ev.key === 'Escape') {
+      ev.preventDefault();
+      close();
+    }
+  }
+
+  closeBtn.addEventListener('click', close);
+  // Tapping the dim ground outside the panel dismisses the view.
+  root.addEventListener('pointerdown', (ev) => {
+    if (ev.target === root) close();
+  });
+  document.addEventListener('keydown', onKey);
+  closeBtn.focus();
+
+  return { close };
+}
+
+export function createSigilTracer(
+  key: string,
+  opts: { size?: number; onComplete?: () => void } = {},
+): SigilTracer {
+  const size = opts.size ?? 200;
+
+  const el = document.createElement('div');
+  el.className = 'sigil-tracer';
+  el.style.setProperty('--trace-size', `${size}px`);
+
+  const ts = buildTraceSvg(key);
+  el.appendChild(ts.svg);
+
+  const hint = document.createElement('p');
+  hint.className = 'trace-hint';
+  hint.setAttribute('aria-live', 'polite');
+  el.appendChild(hint);
+
+  let done = false;
+
+  function markLit() {
+    if (done) return;
+    done = true;
+    el.classList.add('traced');
+    ts.progress.style.strokeDashoffset = '0';
+    hint.textContent = 'The sigil is lit. Begin when you are ready.';
+  }
+
+  // jsdom and reduced-motion users can't trace; offer a single tap instead.
+  if (!geometryOk(ts) || prefersReducedMotion()) {
+    el.classList.add('trace-tap');
+    hint.textContent = 'Touch the sigil to focus, then begin.';
+    const onTap = () => {
+      markLit();
+      opts.onComplete?.();
+    };
+    ts.svg.addEventListener('click', onTap);
+    return {
+      el,
+      destroy() {
+        ts.svg.removeEventListener('click', onTap);
+        el.remove();
+      },
+    };
+  }
+
+  // Normal path: the inline sigil is a preview; tapping it opens the large
+  // overlay where the actual tracing happens.
+  el.classList.add('trace-preview');
+  el.setAttribute('role', 'button');
+  el.tabIndex = 0;
+  el.setAttribute('aria-label', 'Open the sigil to trace it');
+  hint.textContent = 'Tap the sigil to trace it.';
+
+  let overlay: TraceOverlay | null = null;
+
+  function open() {
+    if (done || overlay) return;
+    overlay = openTraceOverlay(key, {
+      onComplete: () => {
+        markLit();
+        opts.onComplete?.();
+      },
+      onClose: () => {
+        overlay = null;
+      },
+    });
+  }
+
+  function onClick() {
+    open();
+  }
+  function onKey(ev: KeyboardEvent) {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      open();
+    }
+  }
+  el.addEventListener('click', onClick);
+  el.addEventListener('keydown', onKey);
+
+  return {
+    el,
+    destroy() {
+      overlay?.close();
+      el.removeEventListener('click', onClick);
+      el.removeEventListener('keydown', onKey);
       el.remove();
     },
   };

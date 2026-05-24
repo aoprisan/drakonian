@@ -1621,19 +1621,57 @@ body[data-shell] .brand-mark {
   filter: drop-shadow(0 0 4px var(--gilt-bright));
   animation: trace-start-pulse 2.2s ease-in-out infinite;
 }
-.sigil-tracer.tracing {
+.sigil-trace.tracing {
   cursor: grabbing;
 }
-.sigil-tracer.traced .trace-progress {
+/* The glowing cursor that rides the line; shown only once a trace begins. */
+.trace-cursor {
+  fill: var(--gilt-bright);
+  stroke: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 6px var(--gilt-bright));
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.trace-cursor.ready {
+  opacity: 1;
+}
+.sigil-tracer.traced .trace-progress,
+.sigil-trace.traced .trace-progress {
   stroke: var(--gilt-bright);
   filter: drop-shadow(0 0 8px var(--gilt-bright));
   animation: sigil-breathe 5s ease-in-out infinite;
 }
-.sigil-tracer.traced .trace-start {
+.sigil-tracer.traced .trace-start,
+.sigil-trace.traced .trace-start,
+.sigil-trace.traced .trace-cursor {
   opacity: 0;
 }
 .sigil-tracer.trace-tap .sigil-trace {
   cursor: pointer;
+}
+/* Inline preview: a tap-to-open affordance rather than a drawing surface. */
+.sigil-tracer.trace-preview {
+  cursor: pointer;
+  border-radius: 1rem;
+  outline: none;
+  transition: transform 0.18s ease;
+}
+.sigil-tracer.trace-preview .sigil-trace {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.sigil-tracer.trace-preview:hover:not(.traced),
+.sigil-tracer.trace-preview:focus-visible:not(.traced) {
+  transform: scale(1.03);
+}
+.sigil-tracer.trace-preview:hover:not(.traced) .trace-target,
+.sigil-tracer.trace-preview:focus-visible:not(.traced) .trace-target {
+  stroke: var(--gilt);
+  opacity: 0.9;
+}
+.sigil-tracer.trace-preview:focus-visible {
+  box-shadow: var(--gild-glow);
 }
 .trace-hint {
   font-family: var(--font-ui);
@@ -1661,6 +1699,51 @@ body[data-shell] .brand-mark {
   50% {
     opacity: 1;
     filter: drop-shadow(0 0 8px var(--gilt-bright));
+  }
+}
+
+/* The large, dark view opened by tapping the sigil — easy to draw at scale. */
+body.trace-overlay-open {
+  overflow: hidden;
+}
+.trace-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: radial-gradient(circle at 50% 42%, rgba(28, 18, 8, 0.86), var(--void) 78%);
+  backdrop-filter: blur(6px);
+  animation: trace-overlay-in 0.22s ease both;
+}
+.trace-overlay-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  max-width: 100%;
+}
+.trace-svg-large {
+  width: min(86vw, 86vh, 540px);
+  height: min(86vw, 86vh, 540px);
+  touch-action: none;
+  cursor: crosshair;
+}
+.trace-overlay .trace-hint {
+  font-size: 0.74rem;
+}
+.trace-overlay-close {
+  min-width: 8rem;
+}
+
+@keyframes trace-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
