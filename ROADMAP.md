@@ -24,10 +24,6 @@ with the app's design.
 - **Lunar phase awareness** — local moon-phase maths drive a phase banner on the tree;
   the dark moon favours the gate of Gamaliel, and the moon's glow swells with its
   illumination. (`src/sys/lunar.ts`, `src/views/tree.ts`)
-- **Spoken invocation (TTS)** — an opt-in "Spoken invocation" toggle reads each rite
-  step aloud via the Web Speech API for a hands-free, eyes-closed working; speech is
-  cancelled on step change, completion, and leaving the rite.
-  (`src/sys/speech.ts`, `src/views/ritual.ts`, `tts` flag in `src/state/store.ts`)
 - **Standalone breath trainer** — the breath pacer decoupled from a full rite at
   `/breath`, with cadence presets (Square, Calm, Serpent, Triangle, Dragon) and span
   presets; reuses the rite player's bells/haptics and wake lock, and can inscribe a
@@ -40,7 +36,6 @@ with the app's design.
 1. **Sanctum / Settings view** — consolidates toggles now scattered across nav + rite intro.
 2. **Planetary hours** — pairs naturally with the now-shipped lunar awareness.
 3. **Custom rite builder** — turns a fixed grimoire into a personal one.
-4. **Voice selection for TTS** — let the practitioner pick among the device's voices.
 
 ---
 
@@ -63,7 +58,7 @@ with the app's design.
 ## Content & the Tree
 
 - **Glossary + name pronunciation** *(M)* — Tap-to-define Qabalistic/Draconian terms in
-  the prose; TTS or tones for ruler/divine names. *Hook:* a terms map; wrap terms in
+  the prose; struck tones for ruler/divine names. *Hook:* a terms map; wrap terms in
   `src/views/qlipha.ts` and `src/views/about.ts` prose.
 - **Dayside overlay** *(M)* — Toggle the Tree of Death against the Tree of Life to show
   each shell inverting its sphere. *Hook:* `Qlipha.daysideSphere` exists; draw a second
@@ -99,7 +94,7 @@ with the app's design.
 ## Atmosphere & polish
 
 - **Sanctum / Settings view** *(M)* — Consolidate the toggles (drone, candle, cues, and
-  any future TTS/lunar) now scattered across `src/components/nav.ts` and the rite intro.
+  any future lunar) now scattered across `src/components/nav.ts` and the rite intro.
   *Hook:* new route `/sanctum`; bind to the `Ambience` store.
 - **Passphrase-locked Black Book** *(L)* — Encrypt the IndexedDB journal store with a
   passphrase (WebCrypto). Thematic and genuinely protective. *Hook:* wrap get/set in

@@ -15,8 +15,6 @@ import { sigilSvg, sigilSvgStandalone, sigilGeometry } from '../src/components/s
 import { createSigilTracer } from '../src/components/sigil-trace';
 import { buildTreeSvg } from '../src/components/tree-svg';
 import { moonPhase, moonGlyphSvg, lunarOmen } from '../src/sys/lunar';
-import { speechSupported, speak, stopSpeaking } from '../src/sys/speech';
-import { ambience } from '../src/state/store';
 import { QLIPHOTH, TREE_PATHS, ASCENT, getQlipha } from '../src/data/qliphoth';
 import { TUNNELS, getTunnel, getTunnelByPair } from '../src/data/tunnels';
 import { DEGREES } from '../src/data/degrees';
@@ -141,17 +139,6 @@ check('moonGlyphSvg renders a disc + lit limb', () => {
   const svg = moonGlyphSvg(moonPhase(new Date()));
   if (!svg.includes('<svg')) throw new Error('no svg');
   if (!svg.includes('class="moon-lit"')) throw new Error('no lit limb');
-});
-
-check('speech: no-ops safely without the Web Speech API', () => {
-  if (speechSupported()) throw new Error('jsdom should not report speech support');
-  speak('the gate is open'); // must not throw
-  stopSpeaking(); // must not throw
-});
-
-check('ambience: TTS is off by default', () => {
-  if ('tts' in ambience.get() === false) throw new Error('tts flag missing from ambience');
-  if (ambience.get().tts !== false) throw new Error('tts should default off');
 });
 
 check('buildTreeSvg yields 10 nodes + 22 paths + 22 tunnel links', () => {
