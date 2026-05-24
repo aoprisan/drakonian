@@ -7,7 +7,6 @@ import { startDrone, stopDrone, isRunning } from '../audio/drone';
 import { resumeAudio } from '../audio/context';
 import { cue } from '../audio/cues';
 import { acquireWakeLock, releaseWakeLock } from '../sys/wakelock';
-import { speak, stopSpeaking, speechSupported } from '../sys/speech';
 import { ambience } from '../state/store';
 import { addEntry } from '../state/journal';
 
@@ -64,12 +63,6 @@ export function createRitualView(): View {
       function renderIntro() {
         clearPacer();
         clearTracer();
-        const ttsToggle = speechSupported()
-          ? `<label class="drone-toggle">
-                <input type="checkbox" data-toggle="tts" ${ambience.get().tts ? 'checked' : ''} />
-                <span>Spoken invocation</span>
-              </label>`
-          : '';
         stage.innerHTML = `
           <header class="rite-intro">
             <div class="rite-trace-slot"></div>
@@ -86,7 +79,6 @@ export function createRitualView(): View {
                 <input type="checkbox" data-toggle="cues" ${ambience.get().cues ? 'checked' : ''} />
                 <span>Bells &amp; vibration</span>
               </label>
-              ${ttsToggle}
               <button type="button" class="begin-rite primary-btn">Begin the Rite</button>
             </div>
             <p class="rite-warn">Find a dark, quiet place. The rite advances at your pace.</p>
@@ -113,11 +105,6 @@ export function createRitualView(): View {
         const cuesInput = stage.querySelector<HTMLInputElement>('[data-toggle="cues"]')!;
         cuesInput.addEventListener('change', () => {
           ambience.update((a) => ({ ...a, cues: cuesInput.checked }));
-        });
-        const ttsInput = stage.querySelector<HTMLInputElement>('[data-toggle="tts"]');
-        ttsInput?.addEventListener('change', () => {
-          ambience.update((a) => ({ ...a, tts: ttsInput.checked }));
-          if (!ttsInput.checked) stopSpeaking();
         });
 
         stage.querySelector<HTMLButtonElement>('.begin-rite')!.addEventListener('click', async () => {
@@ -164,9 +151,6 @@ export function createRitualView(): View {
           </div>`;
         stage.replaceChildren(wrap);
 
-        // Read the step aloud for a hands-free, eyes-closed working.
-        if (ambience.get().tts) speak(step.text);
-
         // Attach pacer for timed step types.
         const slot = wrap.querySelector<HTMLElement>('.rite-pacer-slot')!;
         if (step.type === 'breath') {
@@ -202,7 +186,6 @@ export function createRitualView(): View {
 
       function renderComplete() {
         clearPacer();
-        stopSpeaking();
         cue.seal();
         releaseWakeLock();
         teardownAudio();
@@ -253,7 +236,6 @@ export function createRitualView(): View {
       pacer?.destroy();
       pacer = null;
       clearTracer();
-      stopSpeaking();
       unsubAmbience?.();
       unsubAmbience = null;
       releaseWakeLock();
