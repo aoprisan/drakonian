@@ -57,11 +57,6 @@ function buildTraceSvg(key: string): TraceSvg {
   // The dim guide line and the bright progress line that fills in as we trace.
   const target = path(sigilPath, 'trace-target');
   const progress = path(sigilPath, 'trace-progress');
-  // Normalise the path to 100 length-units so the bright fill can be hidden by
-  // CSS from the very first frame (dasharray/offset = 100) and revealed in
-  // density-independent fractions as it is traced — no dependence on layout or
-  // getTotalLength() for the resting state.
-  progress.setAttribute('pathLength', '100');
   svg.appendChild(target);
   svg.appendChild(progress);
 
@@ -124,9 +119,13 @@ function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
 
   function render() {
     const frac = totalLen > 0 ? (lenDone + segFrac * (segLen[seg] ?? 0)) / totalLen : 0;
-    // Path is normalised to 100 units (see pathLength): offset 100 hides the
-    // fill, 0 draws it whole.
-    progress.style.strokeDashoffset = String(Math.max(0, 100 * (1 - frac)));
+    // vector-effect: non-scaling-stroke resolves the dash in screen pixels, so
+    // scale the viewBox-unit length by the SVG's on-screen scale — otherwise the
+    // fill stops part-way and the line never lights all the way round.
+    const ctm = svg.getScreenCTM();
+    const scale = ctm && ctm.a ? ctm.a : 1;
+    progress.style.strokeDasharray = String(totalLen * scale);
+    progress.style.strokeDashoffset = String(Math.max(0, totalLen * (1 - frac) * scale));
     if (seg < n) {
       const [ax, ay] = linePts[seg];
       const [bx, by] = linePts[(seg + 1) % n];
@@ -141,6 +140,8 @@ function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
     if (done) return;
     done = true;
     tracing = false;
+    // Drop the dash entirely so the whole line shows solid, no matter the scale.
+    progress.style.strokeDasharray = 'none';
     progress.style.strokeDashoffset = '0';
     cursor.classList.remove('ready');
     targetDot.classList.remove('ready');
@@ -345,6 +346,8 @@ export function createSigilTracer(
     if (done) return;
     done = true;
     el.classList.add('traced');
+    // Show the whole glyph solid (dash removed so it can't stop part-way).
+    ts.progress.style.strokeDasharray = 'none';
     ts.progress.style.strokeDashoffset = '0';
     hint.textContent = 'The sigil is lit. Begin when you are ready.';
   }

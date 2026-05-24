@@ -1611,9 +1611,10 @@ body[data-shell] .brand-mark {
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 3px var(--gilt));
   transition: stroke-dashoffset 0.08s linear;
-  /* Path is normalised to pathLength="100"; the fill rests hidden until traced. */
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
+  /* Rest hidden until traced; the engine sets a precise, screen-scaled dash once
+     the SVG is laid out. The large values keep the line hidden at any size. */
+  stroke-dasharray: 9999;
+  stroke-dashoffset: 9999;
 }
 .trace-start {
   fill: var(--gilt-bright);
