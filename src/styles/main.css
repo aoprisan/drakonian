@@ -1636,6 +1636,26 @@ body[data-shell] .brand-mark {
 .trace-cursor.ready {
   opacity: 1;
 }
+/* The next point to aim for; guides the stroke from one chord to the next. */
+.trace-next {
+  fill: var(--gilt);
+  stroke: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.trace-next.ready {
+  animation: trace-next-pulse 1.5s ease-in-out infinite;
+}
+.sigil-trace.traced .trace-next {
+  opacity: 0;
+  animation: none;
+}
+/* Once a stroke is under way the start mark steps back so the next point leads. */
+.sigil-trace.tracing .trace-start {
+  opacity: 0.25;
+  animation: none;
+}
 .sigil-tracer.traced .trace-progress,
 .sigil-trace.traced .trace-progress {
   stroke: var(--gilt-bright);
@@ -1699,6 +1719,18 @@ body[data-shell] .brand-mark {
   50% {
     opacity: 1;
     filter: drop-shadow(0 0 8px var(--gilt-bright));
+  }
+}
+
+@keyframes trace-next-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    filter: drop-shadow(0 0 2px var(--gilt));
+  }
+  50% {
+    opacity: 0.95;
+    filter: drop-shadow(0 0 6px var(--gilt));
   }
 }
 

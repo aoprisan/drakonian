@@ -16,35 +16,26 @@ export interface SigilTracer {
   destroy(): void;
 }
 
-interface Sample {
-  len: number;
-  x: number;
-  y: number;
-}
-
-// The bright start mark and a generous catch radius are forgiving on purpose.
-const TOL = 12; // spatial catch radius in viewBox units
-const START_TOL = 15; // a touch more forgiving to first grab the start mark
-// The cursor only ever crawls forward along the line within a small arc-length
-// window. Keeping the look-ahead under one star segment (the shortest is ~44
-// viewBox units) is what stops a held finger from snapping onto a *different*
-// segment that crosses nearby — the self-intersection teleport that made
-// "another line" light up. A small backward window forgives jitter.
-const LOOK_AHEAD = 38;
-const LOOK_BACK = 6;
-// Among points equally near the finger (e.g. at a crossing), prefer the one
-// closest in arc length to where we already are, so progress never jumps the
-// gap to a downstream pass through the same spot.
-const ARC_WEIGHT = 0.18;
+// The sigil is one stroke between sharp points that crosses itself, so we light
+// it one chord at a time rather than matching against the whole path: only the
+// chord between the last reached point and the next is ever active. This makes
+// it impossible to fill the wrong line, and sharp corners can't stall it because
+// the next point is the target you aim for.
+const START_TOL = 16; // how near the bright mark you must begin (viewBox units)
+const PERP_TOL = 14; // how far off the current chord still counts as "on the line"
+const VERTEX_TOL = 18; // reaching this near the next point completes the chord
+const ADVANCE_AT = 0.88; // …or dragging this far along the chord does
 // Lighting the sigil is a focusing aid, never a gate, so most of the way round
 // is enough — the last sliver back to the start need not be exact.
-const COMPLETE_AT = 0.9;
+const COMPLETE_AT = 0.92;
 
 interface TraceSvg {
   svg: SVGSVGElement;
   progress: SVGPathElement;
   startDot: SVGCircleElement;
   cursor: SVGCircleElement;
+  targetDot: SVGCircleElement;
+  linePts: [number, number][];
   startX: number;
   startY: number;
 }
@@ -76,11 +67,15 @@ function buildTraceSvg(key: string): TraceSvg {
 
   const startDot = circle(startX, startY, 3.2, 'trace-start');
   svg.appendChild(startDot);
+  // The next point to drag toward; shown by the engine to guide the stroke.
+  const [nx, ny] = linePts[1 % linePts.length];
+  const targetDot = circle(nx, ny, 3, 'trace-next');
+  svg.appendChild(targetDot);
   // The cursor that rides the line; hidden until a trace is under way.
   const cursor = circle(startX, startY, 3.4, 'trace-cursor');
   svg.appendChild(cursor);
 
-  return { svg, progress, startDot, cursor, startX, startY };
+  return { svg, progress, startDot, cursor, targetDot, linePts, startX, startY };
 }
 
 function geometryOk(ts: TraceSvg): boolean {
@@ -96,33 +91,29 @@ interface TraceEngine {
   detach(): void;
 }
 
-// Wires pointer tracing onto a TraceSvg using a forward-only, locally-windowed
-// snap so the cursor rides the line and cannot leap across self-intersections.
+// Wires point-to-point tracing onto a TraceSvg: only the chord between the last
+// reached point and the next is ever active, so the fill cannot jump to another
+// line and sharp corners cannot stall it (the next point is the target).
 function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
-  const { svg, progress, cursor, startX, startY } = ts;
-  const geo = progress as SVGGeometryElement;
+  const { svg, progress, cursor, targetDot, linePts, startX, startY } = ts;
+  const n = linePts.length;
 
-  let samples: Sample[] | null = null;
+  // Per-chord lengths and the running total of the closed figure.
+  const segLen: number[] = [];
   let totalLen = 0;
-  let sampleStep = 1.6;
-  let progressLen = 0;
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = linePts[i];
+    const [bx, by] = linePts[(i + 1) % n];
+    const len = Math.hypot(bx - ax, by - ay);
+    segLen.push(len);
+    totalLen += len;
+  }
+
+  let seg = 0; // index of the chord currently being drawn
+  let segFrac = 0; // how far along that chord, 0..1
+  let lenDone = 0; // total length of fully-completed chords
   let tracing = false;
   let done = false;
-
-  function ensureSamples(): Sample[] {
-    if (samples) return samples;
-    totalLen = geo.getTotalLength();
-    const count = Math.max(48, Math.round(totalLen / 1.6));
-    sampleStep = totalLen / count;
-    const out: Sample[] = [];
-    for (let i = 0; i <= count; i++) {
-      const len = (i / count) * totalLen;
-      const pt = geo.getPointAtLength(len);
-      out.push({ len, x: pt.x, y: pt.y });
-    }
-    samples = out;
-    return out;
-  }
 
   function svgPoint(ev: PointerEvent): { x: number; y: number } | null {
     const ctm = svg.getScreenCTM();
@@ -131,54 +122,65 @@ function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
     return { x: p.x, y: p.y };
   }
 
-  function moveCursor(len: number) {
-    const pt = geo.getPointAtLength(len);
-    cursor.setAttribute('cx', String(pt.x));
-    cursor.setAttribute('cy', String(pt.y));
-  }
-
-  function setProgress(len: number) {
-    progressLen = len;
-    const frac = totalLen > 0 ? len / totalLen : 0;
+  function render() {
+    const frac = totalLen > 0 ? (lenDone + segFrac * (segLen[seg] ?? 0)) / totalLen : 0;
     // Path is normalised to 100 units (see pathLength): offset 100 hides the
     // fill, 0 draws it whole.
     progress.style.strokeDashoffset = String(Math.max(0, 100 * (1 - frac)));
-    moveCursor(len);
+    if (seg < n) {
+      const [ax, ay] = linePts[seg];
+      const [bx, by] = linePts[(seg + 1) % n];
+      cursor.setAttribute('cx', String(ax + (bx - ax) * segFrac));
+      cursor.setAttribute('cy', String(ay + (by - ay) * segFrac));
+      targetDot.setAttribute('cx', String(bx));
+      targetDot.setAttribute('cy', String(by));
+    }
   }
 
   function complete() {
     if (done) return;
     done = true;
     tracing = false;
-    setProgress(totalLen);
+    progress.style.strokeDashoffset = '0';
+    cursor.classList.remove('ready');
+    targetDot.classList.remove('ready');
     svg.classList.add('traced');
     onComplete();
   }
 
-  // Snap the finger to the nearest point on the line within a small forward
-  // window, then advance the cursor to it (never backward, never beyond the
-  // window — that is what keeps it on the segment under the finger).
+  // Project the finger onto the active chord and fill it as the finger advances
+  // toward the next point. Reaching that point (or dragging most of the way to
+  // it) completes the chord and makes the next one active, so a continuous drag
+  // can round a point in a single move.
   function advance(px: number, py: number) {
-    const s = ensureSamples();
-    const loLen = Math.max(0, progressLen - LOOK_BACK);
-    const hiLen = Math.min(totalLen, progressLen + LOOK_AHEAD);
-    const from = Math.max(0, Math.floor(loLen / sampleStep));
-    const to = Math.min(s.length - 1, Math.ceil(hiLen / sampleStep));
-    let best = -1;
-    let bestCost = Infinity;
-    for (let i = from; i <= to; i++) {
-      const d = Math.hypot(s[i].x - px, s[i].y - py);
-      if (d > TOL) continue;
-      const cost = d + ARC_WEIGHT * Math.max(0, s[i].len - progressLen);
-      if (cost < bestCost) {
-        bestCost = cost;
-        best = i;
+    let guard = 0;
+    while (seg < n && guard++ <= n) {
+      const [ax, ay] = linePts[seg];
+      const [bx, by] = linePts[(seg + 1) % n];
+      const dx = bx - ax;
+      const dy = by - ay;
+      const l2 = dx * dx + dy * dy;
+      const t = l2 > 0 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / l2)) : 1;
+      const perp = Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+      const toNext = Math.hypot(px - bx, py - by);
+
+      const onLine = perp <= PERP_TOL;
+      if (onLine && t > segFrac) segFrac = t;
+      if (toNext <= VERTEX_TOL) segFrac = 1;
+
+      if (segFrac >= ADVANCE_AT && (onLine || toNext <= VERTEX_TOL)) {
+        // Chord done — bank its length and make the next one active, then
+        // re-project the same finger point onto it.
+        lenDone += segLen[seg];
+        seg += 1;
+        segFrac = 0;
+        continue;
       }
+      break;
     }
-    if (best >= 0) {
-      if (s[best].len > progressLen) setProgress(s[best].len);
-      if (progressLen >= totalLen * COMPLETE_AT) complete();
-    }
+    render();
+    const frac = totalLen > 0 ? (lenDone + segFrac * (segLen[seg] ?? 0)) / totalLen : 0;
+    if (seg >= n || frac >= COMPLETE_AT) complete();
   }
 
   function nearStart(px: number, py: number): boolean {
@@ -190,7 +192,7 @@ function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
     const p = svgPoint(ev);
     if (!p) return;
     // Tracing must begin at the start mark (until some progress is made).
-    if (progressLen === 0 && !nearStart(p.x, p.y)) return;
+    if (seg === 0 && segFrac === 0 && !nearStart(p.x, p.y)) return;
     tracing = true;
     svg.classList.add('tracing');
     try {
@@ -220,10 +222,10 @@ function createTraceEngine(ts: TraceSvg, onComplete: () => void): TraceEngine {
     }
   }
 
-  // Show the cursor parked on the start mark, ready to be picked up.
-  ensureSamples();
-  moveCursor(0);
+  // Park the cursor on the start mark and light the first target point.
+  render();
   cursor.classList.add('ready');
+  targetDot.classList.add('ready');
 
   svg.addEventListener('pointerdown', onDown);
   svg.addEventListener('pointermove', onMove);
@@ -266,7 +268,7 @@ function openTraceOverlay(
   const hint = document.createElement('p');
   hint.className = 'trace-hint';
   hint.setAttribute('aria-live', 'polite');
-  hint.textContent = 'Trace the sigil from the bright mark.';
+  hint.textContent = 'Drag from the bright mark to each glowing point.';
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
