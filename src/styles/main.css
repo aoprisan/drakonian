@@ -1611,6 +1611,9 @@ body[data-shell] .brand-mark {
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 3px var(--gilt));
   transition: stroke-dashoffset 0.08s linear;
+  /* Path is normalised to pathLength="100"; the fill rests hidden until traced. */
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
 }
 .trace-start {
   fill: var(--gilt-bright);

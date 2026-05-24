@@ -45,6 +45,11 @@ export function createSigilTracer(
   // The dim guide line and the bright progress line that fills in as we trace.
   const target = path(sigilPath, 'trace-target');
   const progress = path(sigilPath, 'trace-progress');
+  // Normalise the path to 100 length-units so the bright fill can be hidden by
+  // CSS from the very first frame (dasharray/offset = 100) and revealed in
+  // density-independent fractions as it is traced — no dependence on layout or
+  // getTotalLength() for the resting state.
+  progress.setAttribute('pathLength', '100');
   svg.appendChild(target);
   svg.appendChild(progress);
 
@@ -71,9 +76,15 @@ export function createSigilTracer(
   // at least one segment ahead — otherwise the pointer outruns the window and
   // progress stalls for good. Expressed in viewBox units, density-independent.
   const NEAR_LEN = 72;
-  // If the pointer still outran the near window, scan the rest of the path with
-  // a tighter tolerance so progress rejoins the line instead of freezing.
+  // If the pointer still outran the near window, scan further ahead with a
+  // tighter tolerance so progress rejoins the line instead of freezing.
   const CATCHUP_TOL = 10;
+  // …but never let one move leap most of the way round. The star is a closed
+  // figure, so its final samples sit back on the start mark; without a bound a
+  // small wiggle near the start would match those wrap-around samples and
+  // complete the trace at once. A fraction well under COMPLETE_AT still
+  // recovers any realistic fast flick (which leaps roughly one segment).
+  const MAX_JUMP_FRAC = 0.4;
   // Lighting the sigil is a focusing aid, never a gate, so most of the way
   // round is enough — the last sliver back to the start need not be exact.
   const COMPLETE_AT = 0.85;
@@ -89,7 +100,7 @@ export function createSigilTracer(
     done = true;
     tracing = false;
     el.classList.add('traced');
-    if (geometryOk && samples) progress.style.strokeDashoffset = '0';
+    progress.style.strokeDashoffset = '0';
     hint.textContent = 'The sigil is lit. Begin when you are ready.';
     opts.onComplete?.();
   }
@@ -112,8 +123,6 @@ export function createSigilTracer(
     if (samples) return samples;
     const geo = progress as SVGGeometryElement;
     totalLen = geo.getTotalLength();
-    progress.style.strokeDasharray = String(totalLen);
-    progress.style.strokeDashoffset = String(totalLen);
     const count = Math.max(48, Math.round(totalLen / 1.6));
     sampleStep = totalLen / count;
     const out: Sample[] = [];
@@ -135,7 +144,10 @@ export function createSigilTracer(
 
   function setProgress(len: number) {
     progressLen = len;
-    progress.style.strokeDashoffset = String(Math.max(0, totalLen - len));
+    const frac = totalLen > 0 ? len / totalLen : 0;
+    // Path is normalised to 100 units (see pathLength above): offset 100 hides
+    // the fill, 0 draws it whole.
+    progress.style.strokeDashoffset = String(Math.max(0, 100 * (1 - frac)));
   }
 
   function nearest(s: Sample[], px: number, py: number, from: number, to: number, tol: number) {
@@ -155,10 +167,12 @@ export function createSigilTracer(
     const s = ensureSamples();
     const near = Math.min(s.length - 1, lastIdx + Math.ceil(NEAR_LEN / sampleStep));
     let bestIdx = nearest(s, px, py, lastIdx, near, TOL);
-    // Pointer outran the near window (a fast flick): scan the rest of the path
-    // with a tighter tolerance so progress catches up rather than stalling.
+    // Pointer outran the near window (a fast flick): scan a bounded distance
+    // further with a tighter tolerance so progress catches up rather than
+    // stalling — but not so far that a near-start wiggle wraps to the close.
     if (bestIdx < 0 && near < s.length - 1) {
-      bestIdx = nearest(s, px, py, near + 1, s.length - 1, CATCHUP_TOL);
+      const reach = Math.min(s.length - 1, lastIdx + Math.ceil((s.length - 1) * MAX_JUMP_FRAC));
+      if (reach > near) bestIdx = nearest(s, px, py, near + 1, reach, CATCHUP_TOL);
     }
     if (bestIdx >= 0) {
       lastIdx = bestIdx;
