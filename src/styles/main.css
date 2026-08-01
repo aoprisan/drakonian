@@ -39,8 +39,27 @@
 
   --maxw: 54rem;
   --radius: 3px;
+  --radius-lg: 6px;
   --gild-glow: 0 0 22px -8px var(--gilt);
   --rubric-glow: 0 0 22px -6px var(--rubric);
+
+  /* --- Layout scale: one ladder of spacing for the whole book --- */
+  --s-1: 0.35rem;
+  --s-2: 0.6rem;
+  --s-3: 0.95rem;
+  --s-4: 1.4rem;
+  --s-5: 2rem;
+  --s-6: 3rem;
+
+  /* --- Surfaces: the ruled panels a leaf is built from --- */
+  --surface: linear-gradient(180deg, var(--panel), var(--panel-deep));
+  --surface-raised: linear-gradient(180deg, var(--vellum-soft), var(--panel));
+  --shadow-leaf: 0 18px 50px -30px #000;
+  --ring: 0 0 0 2px var(--vellum), 0 0 0 3px var(--gilt);
+
+  /* Safe areas, so the bar and the foot of the page clear a phone's chrome. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 
   /* A reusable parchment grain (grayscale fractal noise) for overlays. */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
@@ -147,7 +166,15 @@ h3 {
   z-index: 2;
   max-width: var(--maxw);
   margin: 0 auto;
-  padding: 2rem 1.4rem 5rem;
+  padding: var(--s-5) var(--s-4) calc(var(--s-6) + var(--safe-bottom) + 2rem);
+}
+
+/* A single, consistent focus ring everywhere — the book is worked in the dark
+   and often with a keyboard or a switch, so the ring has to be unmissable. */
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--radius);
 }
 
 /* =========================================================================
@@ -156,13 +183,13 @@ h3 {
 .topnav {
   position: sticky;
   top: 0;
-  z-index: 4;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.7rem 1.3rem;
-  background: linear-gradient(180deg, rgba(21, 15, 9, 0.97), rgba(21, 15, 9, 0.74));
+  gap: var(--s-3);
+  padding: calc(0.55rem + var(--safe-top)) var(--s-4) 0.55rem;
+  background: linear-gradient(180deg, rgba(21, 15, 9, 0.97), rgba(21, 15, 9, 0.78));
   backdrop-filter: blur(7px);
   border-bottom: 1px solid var(--gilt-deep);
   box-shadow: 0 1px 0 rgba(193, 154, 69, 0.28), 0 10px 24px -18px #000;
@@ -193,9 +220,9 @@ h3 {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.1rem;
+  gap: 1.05rem;
   font-family: var(--font-ui);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -203,6 +230,7 @@ h3 {
   color: var(--ink-dim);
   position: relative;
   padding-bottom: 2px;
+  white-space: nowrap;
 }
 .nav-links a.active,
 .nav-links a:hover {
@@ -217,21 +245,145 @@ h3 {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gilt), transparent);
 }
-.candle-toggle {
+/* The revision stamp, kept in the index rather than the bar. */
+.nav-stamp {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--gilt-deep) !important;
+  text-transform: none;
+}
+.nav-stamp:hover {
+  color: var(--gilt) !important;
+}
+.nav-stamp.active::after {
+  display: none;
+}
+
+.nav-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.icon-btn {
+  display: grid;
+  place-items: center;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--panel-edge);
   color: var(--ink-body);
   border-radius: var(--radius);
-  padding: 0.28rem 0.55rem;
+  padding: 0.3rem 0.55rem;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.icon-btn:hover {
+  color: var(--gilt-bright);
+  border-color: var(--gilt-deep);
 }
 .candle-toggle[aria-pressed='true'] {
   color: var(--gilt-bright);
   border-color: var(--gilt);
   box-shadow: var(--gild-glow);
+}
+
+/* The drawer handle: three ruled lines that fold into a cross when open. */
+.nav-menu {
+  display: none;
+}
+.nav-menu-bars,
+.nav-menu-bars::before,
+.nav-menu-bars::after {
+  display: block;
+  width: 1.05rem;
+  height: 1px;
+  background: currentColor;
+  transition: transform 0.24s ease, opacity 0.18s ease;
+}
+.nav-menu-bars::before,
+.nav-menu-bars::after {
+  content: '';
+  position: relative;
+}
+.nav-menu-bars::before {
+  top: -5px;
+}
+.nav-menu-bars::after {
+  top: 4px;
+}
+.topnav.menu-open .nav-menu {
+  color: var(--gilt-bright);
+  border-color: var(--gilt);
+}
+/* The middle rule fades (its own background, not its opacity — the bars are
+   pseudo-children and would fade with it) while the outer two cross. */
+.topnav.menu-open .nav-menu-bars {
+  background: transparent;
+}
+.topnav.menu-open .nav-menu-bars::before {
+  transform: translateY(5px) rotate(45deg);
+}
+.topnav.menu-open .nav-menu-bars::after {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+/* On a narrow leaf the index folds into a drawer beneath the band, so the
+   section list can grow without crowding the bar or shrinking the type. */
+@media (max-width: 46rem) {
+  .nav-menu {
+    display: grid;
+  }
+  .topnav {
+    flex-wrap: wrap;
+  }
+  .nav-links {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: var(--s-2) var(--s-4) calc(var(--s-4) + var(--safe-bottom));
+    background: linear-gradient(180deg, #14100a, #100b06);
+    border-bottom: 1px solid var(--gilt-deep);
+    box-shadow: 0 22px 40px -20px #000;
+    transform-origin: top center;
+    transform: scaleY(0.9) translateY(-0.5rem);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  }
+  .topnav.menu-open .nav-links {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+  .nav-links a {
+    padding: 0.85rem 0.2rem;
+    font-size: 0.86rem;
+    border-bottom: 1px solid rgba(60, 44, 22, 0.55);
+  }
+  .nav-links a.active {
+    color: var(--gilt-bright);
+  }
+  .nav-links a.active::after {
+    left: -0.6rem;
+    right: auto;
+    top: 50%;
+    bottom: auto;
+    width: 3px;
+    height: 1.2rem;
+    transform: translateY(-50%);
+    background: var(--accent);
+  }
+  .nav-stamp {
+    border-bottom: none !important;
+    padding-top: var(--s-3) !important;
+  }
 }
 
 /* --- View transitions --- */
@@ -587,33 +739,38 @@ button:disabled {
   transform: scaleX(-1);
 }
 
-/* The index of shells, read like a contents leaf. */
+/* The index of shells, read like a contents leaf — two columns where there is
+   room for them, one where there is not. */
 .ascent-list {
   list-style: none;
   padding: 0;
-  margin: 2.2rem 0 0;
+  margin: var(--s-5) 0 0;
   display: grid;
-  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--s-2);
 }
 .ascent-list a {
   display: grid;
-  grid-template-columns: 2.4rem 1fr;
+  grid-template-columns: 2.6rem 1fr;
   grid-template-areas: 'order name' 'order epithet';
   gap: 0 0.85rem;
   align-items: center;
-  padding: 0.6rem 0.95rem;
-  background: linear-gradient(180deg, var(--panel), var(--panel-deep));
+  height: 100%;
+  padding: 0.7rem 1rem;
+  background: var(--surface);
   border: 1px solid var(--panel-edge);
   border-left: 3px solid var(--rubric);
   border-radius: var(--radius);
   color: var(--ink-body);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 .ascent-list a:hover {
   border-left-color: var(--gilt-bright);
   border-color: var(--gilt-deep);
-  background: linear-gradient(180deg, var(--vellum-soft), var(--panel));
+  background: var(--surface-raised);
   box-shadow: var(--gild-glow);
+  transform: translateY(-1px);
 }
 .ascent-order {
   grid-area: order;
@@ -1342,9 +1499,11 @@ body.candle-mode .topnav:hover {
   .correspondences {
     grid-template-columns: 1fr;
   }
-  .nav-links {
-    gap: 0.8rem;
-  }
+}
+
+/* Only the very narrowest leaves drop the brand's name; the drawer handle
+   leaves room for it on an ordinary phone. */
+@media (max-width: 22rem) {
   .brand-text {
     display: none;
   }
@@ -2071,4 +2230,505 @@ body.trace-overlay-open {
   .update-banner.visible {
     transform: translateY(0);
   }
+}
+
+/* =========================================================================
+   Shared leaf furniture — the primitives the newer sections are built from
+   ========================================================================= */
+
+/* A page's opening block: kicker, grand title, line of gloss. */
+.page-head {
+  margin-bottom: var(--s-5);
+}
+.kicker {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rubric-bright);
+  margin: 0 0 0.5rem;
+}
+
+/* The ruled panel a leaf of the codex is written on. The illuminated
+   treatment of .qlipha, generalised for every other section. */
+.leaf {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--panel-edge);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: var(--s-5) var(--s-4);
+  box-shadow: var(--shadow-leaf);
+}
+.leaf + .leaf,
+.leaf + .section-title,
+.card-grid + .section-title,
+.rite-list + .section-title,
+.feast-list + .section-title {
+  margin-top: var(--s-6);
+}
+.leaf > .section-title:first-child {
+  margin-top: 0;
+}
+
+/* A responsive rank of cards; used for the topics of a section. */
+.card-grid {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--s-2);
+}
+.card-grid > li > a {
+  display: grid;
+  gap: 0.3rem;
+  height: 100%;
+  padding: var(--s-3) var(--s-3) var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--panel-edge);
+  border-top: 2px solid var(--rubric);
+  border-radius: var(--radius);
+  color: var(--ink-body);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.card-grid > li > a:hover {
+  background: var(--surface-raised);
+  border-color: var(--gilt-deep);
+  border-top-color: var(--gilt);
+  box-shadow: var(--gild-glow);
+  transform: translateY(-2px);
+}
+
+/* =========================================================================
+   Thelema — the daylight half of the book
+   ========================================================================= */
+.hexagram {
+  overflow: visible;
+  filter: url(#ink-rough) drop-shadow(0 0 14px rgba(193, 154, 69, 0.22));
+}
+.hexagram-line {
+  fill: none;
+  stroke: var(--gilt);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+.hexagram-ring {
+  fill: none;
+  stroke: var(--gilt-deep);
+  stroke-width: 1;
+  opacity: 0.85;
+}
+.hexagram-petal {
+  fill: rgba(140, 28, 18, 0.28);
+  stroke: var(--rubric-bright);
+  stroke-width: 1;
+}
+
+.thelema-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+.thelema-hero-glyph {
+  display: grid;
+  place-items: center;
+}
+.thelema-law {
+  margin: 0;
+  padding: var(--s-3) 0 var(--s-3) var(--s-4);
+  border-left: 2px solid var(--gilt-deep);
+}
+.thelema-law p {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.6vw, 1.35rem);
+  line-height: 1.35;
+  color: var(--ink);
+}
+.thelema-law cite {
+  display: block;
+  margin-top: var(--s-2);
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-style: normal;
+  color: var(--ink-dim);
+}
+.thelema-note {
+  color: var(--ink-dim);
+  font-size: 0.98rem;
+  font-style: italic;
+  margin-top: var(--s-3);
+}
+
+/* The reckoning: the Thelemic date, kept live while the page is open. */
+.reckoning-body {
+  display: grid;
+  gap: var(--s-3);
+}
+.reckoning-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--s-2) var(--s-3);
+  margin: var(--s-3) 0 0;
+}
+.reckoning-grid dt {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.reckoning-grid dd {
+  margin: 0.15rem 0 0;
+  color: var(--ink);
+  font-size: 1.02rem;
+}
+/* Zodiac glyphs must be drawn as text, not as a colour emoji — the codex has
+   no room for a yellow cartoon lion. */
+.reckoning-glyph {
+  color: var(--gilt-bright);
+  margin-right: 0.25rem;
+  font-family: var(--font-body);
+  font-variant-emoji: text;
+}
+.reckoning-note {
+  display: block;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+.reckoning-station {
+  display: grid;
+  gap: 0.2rem;
+  padding: var(--s-3);
+  border: 1px solid var(--gilt-deep);
+  border-left: 3px solid var(--rubric);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--ink-body);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.reckoning-station:hover {
+  border-color: var(--gilt);
+  box-shadow: var(--gild-glow);
+  color: var(--ink);
+}
+.reckoning-hour {
+  font-family: var(--font-ui);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.reckoning-god {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--gilt-bright);
+}
+.reckoning-aspect {
+  font-style: italic;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+}
+
+/* Topic cards. */
+.topic-card-sigil {
+  display: block;
+  opacity: 0.75;
+}
+.topic-card-sigil .sigil {
+  display: block;
+  margin: 0 auto 0.2rem;
+}
+.topic-card-kicker {
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--rubric-bright);
+}
+.topic-card-title {
+  font-family: var(--font-ui);
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.topic-card-epithet {
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink-dim);
+  line-height: 1.45;
+}
+
+/* The rite index. */
+.rite-list {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.rite-list a {
+  display: grid;
+  gap: 0.2rem;
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--panel-edge);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--ink-body);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.rite-list a:hover {
+  background: var(--surface-raised);
+  border-color: var(--gilt-deep);
+  box-shadow: var(--gild-glow);
+}
+.rite-list-title {
+  font-family: var(--font-ui);
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.rite-list-blurb {
+  font-style: italic;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+}
+.rite-list-meta {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gilt-deep);
+}
+
+/* The feasts of the Aeonic year. */
+.feast-list {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-1);
+  counter-reset: feast;
+}
+.feast-list li {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  grid-template-areas: 'date name flag' 'date note note';
+  gap: 0.1rem var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid rgba(60, 44, 22, 0.5);
+}
+.feast-date {
+  grid-area: date;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gilt);
+  align-self: start;
+  padding-top: 0.2rem;
+}
+.feast-name {
+  grid-area: name;
+  color: var(--ink);
+}
+.feast-note {
+  grid-area: note;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+.feast-flag {
+  grid-area: flag;
+  align-self: start;
+  font-family: var(--font-ui);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gilt-bright);
+  border: 1px solid var(--gilt-deep);
+  border-radius: var(--radius);
+  padding: 0.1rem 0.4rem;
+}
+.feast-next {
+  background: rgba(140, 28, 18, 0.1);
+  border-left: 3px solid var(--rubric);
+}
+
+/* A topic leaf. */
+.topic-sigil {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--s-3);
+  opacity: 0.85;
+}
+.topic-head {
+  text-align: center;
+  margin-bottom: var(--s-4);
+}
+.topic-epithet {
+  font-style: italic;
+  color: var(--ink-dim);
+  margin: 0;
+}
+.topic-body p {
+  margin: 0 0 var(--s-3);
+}
+.topic-quote {
+  margin: var(--s-4) 0 0;
+  padding: var(--s-3) var(--s-4);
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 3px solid var(--rubric);
+  border-radius: var(--radius);
+}
+.topic-quote p {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.12rem;
+  font-style: italic;
+  color: var(--ink);
+}
+.topic-quote cite {
+  display: block;
+  margin-top: var(--s-2);
+  font-family: var(--font-ui);
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-style: normal;
+  color: var(--ink-dim);
+}
+.topic-keys {
+  margin-top: var(--s-4);
+}
+
+/* =========================================================================
+   Colophon — the edition in hand, and how to replace it
+   ========================================================================= */
+.colophon {
+  margin-top: var(--s-6);
+}
+.colophon-blurb {
+  color: var(--ink-dim);
+  font-style: italic;
+  margin: var(--s-3) 0 0;
+}
+.colophon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--s-3);
+  margin: var(--s-4) 0 0;
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--panel-edge);
+  border-bottom: 1px solid var(--panel-edge);
+}
+.colophon-grid dt {
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.colophon-grid dd {
+  margin: 0.2rem 0 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+.colophon-grid code {
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', monospace;
+  font-size: 0.92rem;
+  color: var(--gilt-bright);
+}
+.colophon-age {
+  display: block;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+.colophon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+.colophon-force {
+  border-color: var(--rubric-deep);
+  color: var(--ink-dim);
+}
+.colophon-force:hover {
+  border-color: var(--rubric-bright);
+  color: var(--rubric-bright);
+  box-shadow: var(--rubric-glow);
+}
+.colophon-status {
+  min-height: 1.4rem;
+  margin: var(--s-3) 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+.colophon-status[data-tone='good'] {
+  color: var(--gilt-bright);
+}
+.colophon-status[data-tone='warn'] {
+  color: var(--rubric-bright);
+}
+.colophon-note {
+  margin: var(--s-2) 0 0;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+/* =========================================================================
+   Responsive — the newer furniture
+   ========================================================================= */
+@media (max-width: 40rem) {
+  .thelema-hero {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .thelema-law {
+    border-left: none;
+    border-top: 1px solid var(--gilt-deep);
+    padding: var(--s-3) 0 0;
+  }
+  .feast-list li {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'date flag' 'name name' 'note note';
+  }
+  .colophon-actions .ghost-btn,
+  .colophon-actions .primary-btn {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}
+
+/* Candle mode dims the newer chrome to the same single flame. */
+body.candle-mode .colophon,
+body.candle-mode .reckoning {
+  opacity: 0.75;
+}
+
+/* The bridge from the Tree to the daylight half of the book. */
+.tree-bridge {
+  margin-top: var(--s-6);
+}
+.tree-bridge p {
+  margin: var(--s-3) 0;
+  color: var(--ink-body);
+}
+
+/* The topic leaf borrows the correspondences plaque, under its own heading. */
+.topic-keys::before {
+  content: '❧  Keys  ❧';
 }

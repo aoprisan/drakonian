@@ -1,17 +1,21 @@
 import type { View } from '../types';
+import { createBuildInfo, type BuildInfo } from '../components/build-info';
 
 export function createAboutView(): View {
+  let buildInfo: BuildInfo | null = null;
+
   return {
     mount(container) {
       const section = document.createElement('section');
       section.className = 'view view-about';
       section.innerHTML = `
-        <header>
+        <header class="page-head">
+          <p class="kicker">Colophon &amp; Preface</p>
           <h1 class="display-title">The Mysteries</h1>
           <p class="subtitle">On the Draconian path and the Tree of Death.</p>
         </header>
 
-        <article class="prose">
+        <article class="leaf prose">
           <h2>The Nightside</h2>
           <p>
             The Qabalistic Tree of Life has a shadow. Where the ten Sephiroth radiate ordered
@@ -47,7 +51,18 @@ export function createAboutView(): View {
             <li><strong>The Codex</strong> — each shell's ruler, planet, element, and rite.</li>
             <li><strong>The Rites</strong> — guided workings with breath, invocation, and vision. Best worked in darkness.</li>
             <li><strong>The Black Book</strong> — your private journal and initiation tracker. Nothing leaves this device; export a backup to keep it safe.</li>
+            <li><strong>Thelema</strong> — the daylight half of the same magick: the Law, the True Will, the Book of the Law, and the Aeon this book is written in.</li>
           </ul>
+
+          <h2>On Thelema</h2>
+          <p>
+            Nearly every current in modern Western magick — the Draconian work in this book
+            included — runs downstream of what Aleister Crowley wrote between 1904 and 1947. The
+            <a href="#/thelema">Thelema</a> section sets out that inheritance plainly: the Law and
+            what it does not mean, the True Will, the three godforms of the Book of the Law, the
+            Aeons, the daily adorations of Liber Resh, and the Abyss where the Thelemic ladder and
+            the Nightside ascent turn out to describe the same country.
+          </p>
 
           <h2>A Word of Caution</h2>
           <p>
@@ -62,8 +77,15 @@ export function createAboutView(): View {
           </p>
         </article>
       `;
+
+      buildInfo = createBuildInfo();
+      section.appendChild(buildInfo.el);
+
       container.appendChild(section);
     },
-    destroy() {},
+    destroy() {
+      buildInfo?.destroy();
+      buildInfo = null;
+    },
   };
 }

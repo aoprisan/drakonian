@@ -85,10 +85,34 @@ export interface RitualStep {
 export interface Ritual {
   id: string;
   title: string;
-  qliphaId: QliphaId;
+  /** The shell this rite opens. Absent for rites outside the Nightside work. */
+  qliphaId?: QliphaId;
   intent: string;
   intro: string;
   steps: RitualStep[];
+  /** Where the rite returns to. Defaults to the shell's leaf when it has one. */
+  home?: { href: string; label: string };
+}
+
+// --- Thelema -------------------------------------------------------------
+
+export interface ThelemaTopic {
+  id: string;
+  /** Small-caps line above the title, e.g. "Cairo, 1904". */
+  kicker: string;
+  title: string;
+  /** One-line summary shown on the index card. */
+  epithet: string;
+  /** Body paragraphs (plain text; escaped at render). */
+  body: string[];
+  /** A short quotation with its source. */
+  quote?: { text: string; source: string };
+  /** Labelled points rendered as a definition list. */
+  keys?: { term: string; def: string }[];
+  /** A cross-reference, usually into the Nightside material. */
+  seeAlso?: { href: string; label: string };
+  /** Key for the deterministic sigil drawn on the card. */
+  sigil: string;
 }
 
 // --- Persistence (IndexedDB) ---------------------------------------------

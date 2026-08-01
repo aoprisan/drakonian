@@ -1,17 +1,22 @@
 import { registerSW } from 'virtual:pwa-register';
+import { setUpdateApplier, updateReady } from './update-bus';
 
 // Service-worker registration in prompt mode. When a freshly built revision of
 // the grimoire has been fetched and is waiting, the page does NOT silently
 // reload — that could tear a rite or journal entry out from under the reader.
 // Instead it raises a banner with an Update control so they choose the moment.
+// The same waiting revision is announced on ./update-bus, so the colophon can
+// offer the control too.
 
 export function initUpdatePrompt(): void {
   const updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
+      updateReady.set(true);
       showBanner(() => void updateSW(true));
     },
   });
+  setUpdateApplier(() => void updateSW(true));
 }
 
 function showBanner(apply: () => void): void {

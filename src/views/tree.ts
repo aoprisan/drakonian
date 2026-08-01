@@ -19,7 +19,8 @@ export function createTreeView(): View {
         : '';
 
       section.innerHTML = `
-        <header class="tree-header">
+        <header class="page-head tree-header">
+          <p class="kicker">The Map</p>
           <h1 class="display-title">The Nightside Tree</h1>
           <p class="subtitle">Descend the Qliphoth. Climb the dragon from the gate of Lilith to the divided crown.</p>
         </header>
@@ -41,6 +42,11 @@ export function createTreeView(): View {
       stage.appendChild(svg);
 
       // A compact list beneath for quick navigation / accessibility.
+      const shellsTitle = document.createElement('h2');
+      shellsTitle.className = 'section-title';
+      shellsTitle.textContent = 'The Ten Shells';
+      section.appendChild(shellsTitle);
+
       const list = document.createElement('ol');
       list.className = 'ascent-list';
       for (const q of ASCENT) {
@@ -76,6 +82,19 @@ export function createTreeView(): View {
       }
       tunnelsWrap.appendChild(tlist);
       section.appendChild(tunnelsWrap);
+
+      // The daylight half of the same magick, one tap away.
+      const bridge = document.createElement('aside');
+      bridge.className = 'leaf tree-bridge';
+      bridge.innerHTML = `
+        <h2 class="section-title">The Other Half</h2>
+        <p>
+          The Nightside is one map of the country. The Thelemic current — the Law, the True Will,
+          the Book of the Law and the Abyss — is the other, and most of this vocabulary descends
+          from it.
+        </p>
+        <a class="enter-rite" href="#/thelema">Enter Thelema &#x25B8;</a>`;
+      section.appendChild(bridge);
 
       container.appendChild(section);
     },

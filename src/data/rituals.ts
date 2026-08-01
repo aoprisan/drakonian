@@ -1,4 +1,5 @@
 import type { Ritual, RitualStep, QliphaId } from '../types';
+import { THELEMIC_RITES } from './thelema';
 
 // ---------------------------------------------------------------------------
 // Guided rites, one per shell. Each rite shares a frame — opening breath,
@@ -197,7 +198,11 @@ function buildRitual(seed: RiteSeed): Ritual {
 
 export const RITUALS: Ritual[] = SEEDS.map(buildRitual);
 
-const BY_ID = new Map<string, Ritual>(RITUALS.map((r) => [r.id, r]));
+// The rite player serves every tradition in the book, so its lookup spans the
+// Nightside rites and the Thelemic ones alike.
+const BY_ID = new Map<string, Ritual>(
+  [...RITUALS, ...THELEMIC_RITES].map((r) => [r.id, r]),
+);
 
 export function getRitual(id: string): Ritual | undefined {
   return BY_ID.get(id);
