@@ -73,8 +73,8 @@ export function createBreathView(): View {
       const section = document.createElement('section');
       section.className = 'view view-breath';
       section.innerHTML = `
-        <header>
-          <p class="rite-kicker">Breath</p>
+        <header class="page-head">
+          <p class="kicker">Breath</p>
           <h1 class="display-title">The Breath Pacer</h1>
           <p class="subtitle">A standing practice with no rite to work — choose a cadence and a span, then follow the orb in and out.</p>
         </header>

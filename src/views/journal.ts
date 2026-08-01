@@ -40,7 +40,8 @@ export function createJournalView(): View {
       const section = document.createElement('section');
       section.className = 'view view-journal';
       section.innerHTML = `
-        <header>
+        <header class="page-head">
+          <p class="kicker">The Record</p>
           <h1 class="display-title">The Black Book</h1>
           <p class="subtitle">Your private record. Stored only on this device.</p>
         </header>

@@ -20,6 +20,8 @@ import { createJournalView } from './views/journal';
 import { createAboutView } from './views/about';
 import { createSealView } from './views/seal';
 import { createBreathView } from './views/breath';
+import { createThelemaView } from './views/thelema';
+import { createThelemaTopicView } from './views/thelema-topic';
 import { initUpdatePrompt } from './sys/update';
 
 // --- Routes ---------------------------------------------------------------
@@ -27,6 +29,8 @@ route('/', createTreeView);
 route('/qlipha/:id', createQliphaView);
 route('/tunnel/:id', createTunnelView);
 route('/ritual/:id', createRitualView);
+route('/thelema', createThelemaView);
+route('/thelema/:id', createThelemaTopicView);
 route('/breath', createBreathView);
 route('/seal', createSealView);
 route('/journal', createJournalView);

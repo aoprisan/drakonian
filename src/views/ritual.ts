@@ -46,11 +46,20 @@ export function createRitualView(): View {
         return;
       }
 
-      const qlipha = getQlipha(ritual.qliphaId);
+      const qlipha = ritual.qliphaId ? getQlipha(ritual.qliphaId) : undefined;
+      // Rites outside the Nightside (the Thelemic ones) carry their own return
+      // link; shell rites go back to the leaf of the gate they open.
+      const home = ritual.home ??
+        (qlipha
+          ? { href: `#/qlipha/${qlipha.id}`, label: qlipha.name }
+          : { href: '#/', label: 'The Tree' });
+      // The focusing tracer wants a stable key: the shell's sigil, or one
+      // derived from the rite itself.
+      const traceKey = qlipha?.sigil ?? `rite::${ritual.id}`;
       let index = -1; // -1 = intro screen
 
       section.innerHTML = `
-        <a class="back-link" href="#/qlipha/${ritual.qliphaId}">&#x2190; ${escapeHtml(qlipha?.name ?? 'Codex')}</a>
+        <a class="back-link" href="${home.href}">&#x2190; ${escapeHtml(home.label)}</a>
         <div class="rite-stage"></div>`;
       const stage = section.querySelector<HTMLElement>('.rite-stage')!;
       container.appendChild(section);
@@ -85,10 +94,10 @@ export function createRitualView(): View {
           </header>`;
 
         // Trace-the-sigil focusing exercise. Optional — never gates the rite.
-        if (qlipha?.sigil) {
+        {
           const slot = stage.querySelector<HTMLElement>('.rite-trace-slot')!;
           const header = stage.querySelector<HTMLElement>('.rite-intro')!;
-          tracer = createSigilTracer(qlipha.sigil, {
+          tracer = createSigilTracer(traceKey, {
             size: 200,
             onComplete: () => {
               header.classList.add('rite-focused');
@@ -193,13 +202,17 @@ export function createRitualView(): View {
           <div class="rite-complete">
             <div class="rite-seal" aria-hidden="true">&#x2625;</div>
             <h2 class="display-title">The Rite is Sealed</h2>
-            <p>The gate of ${escapeHtml(qlipha?.name ?? 'the shell')} has been worked. Record what was seen, felt, or received.</p>
+            <p>${
+              qlipha
+                ? `The gate of ${escapeHtml(qlipha.name)} has been worked.`
+                : `${escapeHtml(ritual!.title)} is complete.`
+            } Record what was seen, felt, or received.</p>
             <form class="rite-record">
               <input type="text" name="title" placeholder="Title for this working" value="${escapeHtml(ritual!.title)}" />
               <textarea name="body" rows="5" placeholder="Visions, sensations, omens, results…"></textarea>
               <div class="rite-complete-actions">
                 <button type="submit" class="primary-btn">Record in Journal</button>
-                <a class="ghost-btn" href="#/qlipha/${ritual!.qliphaId}">Return to the Shell</a>
+                <a class="ghost-btn" href="${home.href}">Return to ${escapeHtml(home.label)}</a>
               </div>
             </form>
             <p class="rite-saved" hidden>Inscribed in your journal. <a href="#/journal">Open the journal &#x25B8;</a></p>

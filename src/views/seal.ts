@@ -23,7 +23,8 @@ export function createSealView(): View {
       const section = document.createElement('section');
       section.className = 'view view-seal';
       section.innerHTML = `
-        <header>
+        <header class="page-head">
+          <p class="kicker">Sigil Craft</p>
           <h1 class="display-title">The Personal Seal</h1>
           <p class="subtitle">Inscribe a name or intent; the same words always raise the same seal.</p>
         </header>

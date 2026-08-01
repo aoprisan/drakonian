@@ -10,7 +10,11 @@ import { createJournalView } from '../src/views/journal';
 import { createAboutView } from '../src/views/about';
 import { createSealView } from '../src/views/seal';
 import { createBreathView } from '../src/views/breath';
+import { createThelemaView } from '../src/views/thelema';
+import { createThelemaTopicView } from '../src/views/thelema-topic';
 import { buildNav } from '../src/components/nav';
+import { createBuildInfo } from '../src/components/build-info';
+import { unicursalHexagramSvg } from '../src/components/hexagram';
 import { sigilSvg, sigilSvgStandalone, sigilGeometry } from '../src/components/sigil';
 import { createSigilTracer } from '../src/components/sigil-trace';
 import { buildTreeSvg } from '../src/components/tree-svg';
@@ -18,7 +22,25 @@ import { moonPhase, moonGlyphSvg, lunarOmen } from '../src/sys/lunar';
 import { QLIPHOTH, TREE_PATHS, ASCENT, getQlipha } from '../src/data/qliphoth';
 import { TUNNELS, getTunnel, getTunnelByPair } from '../src/data/tunnels';
 import { DEGREES } from '../src/data/degrees';
-import { RITUALS } from '../src/data/rituals';
+import { RITUALS, getRitual } from '../src/data/rituals';
+import {
+  THELEMA,
+  THELEMA_RITE_INDEX,
+  THELEMIC_RITES,
+  FEASTS,
+  getThelemaTopic,
+  nextFeast,
+} from '../src/data/thelema';
+import {
+  RESH_STATIONS,
+  aeonYear,
+  reshStation,
+  roman,
+  thelemicDate,
+  zodiac,
+  sunLongitude,
+} from '../src/sys/thelemic-date';
+import { buildAge, buildLabel, BUILD_TIME } from '../src/sys/build';
 
 type Result = { name: string; ok: boolean; info?: string };
 const results: Result[] = [];
@@ -78,7 +100,124 @@ check('22 tunnels, unique ids, one per tree path', () => {
   return `${TUNNELS.length} tunnels`;
 });
 
+check('thelema: unique topics, each with body + sigil', () => {
+  if (THELEMA.length < 10) throw new Error(`only ${THELEMA.length} topics`);
+  const ids = new Set(THELEMA.map((t) => t.id));
+  if (ids.size !== THELEMA.length) throw new Error('duplicate topic ids');
+  for (const t of THELEMA) {
+    if (!t.body.length) throw new Error(`${t.id}: no body`);
+    if (!t.sigil) throw new Error(`${t.id}: no sigil key`);
+    if (!getThelemaTopic(t.id)) throw new Error(`${t.id}: not retrievable`);
+    if (t.seeAlso && !t.seeAlso.href.startsWith('#/')) throw new Error(`${t.id}: bad seeAlso`);
+  }
+  return `${THELEMA.length} topics`;
+});
+
+check('thelemic rites resolve through getRitual and carry a home', () => {
+  const ids = new Set(THELEMIC_RITES.map((r) => r.id));
+  if (ids.size !== THELEMIC_RITES.length) throw new Error('duplicate rite ids');
+  for (const r of THELEMIC_RITES) {
+    if (!getRitual(r.id)) throw new Error(`${r.id}: not resolvable`);
+    if (r.steps.length < 3) throw new Error(`${r.id}: too few steps`);
+    if (!r.home) throw new Error(`${r.id}: no return link`);
+    if (r.qliphaId) throw new Error(`${r.id}: should not claim a shell`);
+  }
+  for (const s of RESH_STATIONS) {
+    if (!getRitual(`rite-resh-${s.id}`)) throw new Error(`no rite for station ${s.id}`);
+  }
+  for (const entry of THELEMA_RITE_INDEX) {
+    if (!getRitual(entry.id)) throw new Error(`index points at missing rite ${entry.id}`);
+  }
+  // The Nightside rites must still resolve.
+  if (!getRitual('rite-lilith')) throw new Error('shell rites no longer resolve');
+  return `${THELEMIC_RITES.length} rites`;
+});
+
+check('feasts: every entry is a real calendar day, and one is next', () => {
+  for (const f of FEASTS) {
+    if (f.month < 1 || f.month > 12) throw new Error(`${f.name}: bad month`);
+    if (f.day < 1 || f.day > 31) throw new Error(`${f.name}: bad day`);
+  }
+  const upcoming = nextFeast(new Date(2026, 6, 4));
+  if (upcoming.feast.month !== 8) throw new Error(`July 2026 → ${upcoming.feast.name}`);
+  const wrapped = nextFeast(new Date(2026, 11, 25));
+  if (wrapped.when.getFullYear() !== 2027) throw new Error('late December should wrap');
+  return upcoming.feast.name;
+});
+
+check('aeon years count in docosades from the 1904 equinox', () => {
+  if (roman(0) !== '0') throw new Error('zero should be written 0');
+  if (roman(22) !== 'XXII' || roman(4) !== 'IV') throw new Error('bad roman numerals');
+  const first = aeonYear(new Date(Date.UTC(1904, 5, 1)));
+  if (first.aeonYear !== 0 || first.roman !== '0:0') throw new Error(`1904 → ${first.roman}`);
+  const before = aeonYear(new Date(Date.UTC(1905, 0, 5)));
+  if (before.aeonYear !== 0) throw new Error('before the equinox is still year 0');
+  const after = aeonYear(new Date(Date.UTC(1926, 5, 1)));
+  if (after.docosade !== 1 || after.yearInDocosade !== 0 || after.roman !== 'I:0')
+    throw new Error(`1926 → ${after.roman}`);
+  const now = aeonYear(new Date(Date.UTC(2026, 7, 1)));
+  if (now.roman !== 'V:xii') throw new Error(`2026 → ${now.roman}`);
+  return now.roman;
+});
+
+check('the sun sits in Aries at the March equinox', () => {
+  const equinox = zodiac(sunLongitude(new Date(Date.UTC(2026, 2, 20, 12, 0))));
+  if (equinox.sign !== 'Aries' && equinox.sign !== 'Pisces')
+    throw new Error(`equinox → ${equinox.label}`);
+  const midsummer = zodiac(sunLongitude(new Date(Date.UTC(2026, 6, 20, 12, 0))));
+  if (midsummer.sign !== 'Cancer' && midsummer.sign !== 'Leo')
+    throw new Error(`late July → ${midsummer.label}`);
+  const formula = thelemicDate(new Date(Date.UTC(2026, 7, 1, 12, 0)));
+  if (!formula.label.includes('Anno')) throw new Error('no anno in the formula');
+  if (!formula.dies.startsWith('dies ')) throw new Error(`bad weekday ${formula.dies}`);
+  return formula.label;
+});
+
+check('resh stations follow the clock', () => {
+  const at = (h: number) => reshStation(new Date(2026, 7, 1, h, 0)).id;
+  if (at(6) !== 'ra') throw new Error(`06:00 → ${at(6)}`);
+  if (at(12) !== 'ahathoor') throw new Error(`12:00 → ${at(12)}`);
+  if (at(18) !== 'tum') throw new Error(`18:00 → ${at(18)}`);
+  if (at(1) !== 'khephra') throw new Error(`01:00 → ${at(1)}`);
+  if (RESH_STATIONS.length !== 4) throw new Error('expected four adorations');
+});
+
 // --- Components ------------------------------------------------------------
+check('unicursalHexagramSvg draws one closed stroke + rose', () => {
+  const svg = unicursalHexagramSvg({ size: 120 });
+  if (!svg.includes('<svg')) throw new Error('no svg');
+  const path = /<path class="hexagram-line" d="([^"]+)"/.exec(svg);
+  if (!path) throw new Error('no hexagram path');
+  if (!path[1].trim().endsWith('Z')) throw new Error('path is not closed');
+  if ((path[1].match(/L /g) ?? []).length !== 5) throw new Error('expected six points');
+  if ((svg.match(/hexagram-petal/g) ?? []).length !== 5) throw new Error('expected five petals');
+  if (unicursalHexagramSvg({ ring: false, showRose: false }).includes('hexagram-petal'))
+    throw new Error('rose should be suppressible');
+});
+
+check('createBuildInfo reports the stamp and offers the controls', () => {
+  const info = createBuildInfo();
+  const time = info.el.querySelector('time');
+  if (!time) throw new Error('no build time');
+  if (time.getAttribute('datetime') !== BUILD_TIME) throw new Error('datetime not stamped');
+  for (const act of ['check', 'apply', 'force']) {
+    if (!info.el.querySelector(`[data-act="${act}"]`)) throw new Error(`missing ${act} control`);
+  }
+  if (!info.el.querySelector<HTMLButtonElement>('[data-act="apply"]')!.hidden)
+    throw new Error('apply should be hidden until a revision waits');
+  info.destroy();
+  const then = new Date('2026-01-01T00:00:00Z');
+  if (buildAge(new Date('2026-01-01T00:00:30Z'), then) !== 'moments ago')
+    throw new Error('sub-minute age');
+  if (buildAge(new Date('2026-01-01T06:00:00Z'), then) !== '6 hours ago')
+    throw new Error(`six hours → ${buildAge(new Date('2026-01-01T06:00:00Z'), then)}`);
+  if (buildAge(new Date('2026-01-02T00:00:00Z'), then) !== '1 day ago')
+    throw new Error(`a day → ${buildAge(new Date('2026-01-02T00:00:00Z'), then)}`);
+  if (buildAge(new Date('2026-03-01T00:00:00Z'), then) !== '2 months ago')
+    throw new Error('two months');
+  return buildLabel();
+});
+
 check('sigilSvg produces an <svg> for each shell', () => {
   for (const q of QLIPHOTH) {
     const s = sigilSvg(q.sigil);
@@ -182,6 +321,12 @@ mountView('seal', createSealView);
 mountView('breath', createBreathView);
 mountView('journal', createJournalView);
 mountView('about', createAboutView);
+mountView('thelema', createThelemaView);
+mountView('thelema(law)', createThelemaTopicView, { id: 'law' });
+mountView('thelema(abyss)', createThelemaTopicView, { id: 'abyss' });
+mountView('thelema(unknown)', createThelemaTopicView, { id: 'nope' });
+mountView('ritual(rite-resh-ra)', createRitualView, { id: 'rite-resh-ra' });
+mountView('ritual(rite-true-will)', createRitualView, { id: 'rite-true-will' });
 
 // --- Report ---------------------------------------------------------------
 let failed = 0;
