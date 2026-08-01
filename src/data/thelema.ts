@@ -165,6 +165,30 @@ export const THELEMA: ThelemaTopic[] = [
     seeAlso: { href: '#/journal', label: 'Keep your record in the Black Book' },
   },
   {
+    id: 'meditation',
+    kicker: 'Liber E · the first year',
+    title: 'Meditation',
+    epithet: 'Sit still, breathe in measure, and hold one thing until it holds you.',
+    sigil: 'thelema::meditation',
+    body: [
+      'Thelema inherited its meditation wholesale from the yogis, and Crowley was unusually plain about why: ceremony worked on an unruly mind is theatre. Before anything is invoked, the instrument has to be capable of holding a single idea for longer than a few seconds — and almost nobody can, which is the discovery the practice is designed to force.',
+      'The ladder is short and unglamorous. Asana is posture: one position, held without movement, until the body stops filing complaints. Pranayama is the measured breath, counted in and out until it runs by itself. Dharana is the holding of one object — a simple shape, a syllable, a point of light — and it is here that the work actually begins, because the mind will not do it. Dhyana and samadhi are what may follow; they are not aims to be chased, and the lust of result poisons them faster than any distraction.',
+      'What makes it Thelemic rather than merely borrowed is the record. Each session is written down: the posture, the length, and above all the count of the breaks — every time attention slipped, marked with a stroke on the page. The strokes are the measurement. A month of them is worth more than any impression of how well it went, since the impression is precisely the thing that lies.',
+    ],
+    quote: {
+      text: 'It is absolutely necessary that all experiments should be recorded in detail during, or immediately after, their performance.',
+      source: 'Liber E vel Exercitiorum',
+    },
+    keys: [
+      { term: 'Asana', def: 'Posture — one position, held perfectly still.' },
+      { term: 'Pranayama', def: 'The measured breath, counted until it keeps itself.' },
+      { term: 'Dharana', def: 'The holding of a single object. Where the work begins.' },
+      { term: 'Dhyana', def: 'When the holder and the held stop being two.' },
+      { term: 'The breaks', def: 'Each lapse of attention, marked with a stroke. The only honest score.' },
+    ],
+    seeAlso: { href: '#/ritual/rite-meditation', label: 'Work the Meditation of the Point' },
+  },
+  {
     id: 'resh',
     kicker: 'Four times a day',
     title: 'Liber Resh',
@@ -475,14 +499,56 @@ const RITE_NUIT: Ritual = {
   ],
 };
 
+const RITE_MEDITATION: Ritual = {
+  id: 'rite-meditation',
+  title: 'The Meditation of the Point',
+  intent: 'Sit still, breathe in measure, and hold one point until the mind stops arguing.',
+  intro:
+    'The foundation practice, in the order Liber E gives it: posture, measured breath, and the holding of a single object. Nothing is invoked and nothing is asked for — the whole of the working is attention, and the whole of the result is the count of your breaks. Ten minutes daily will teach you more than a year of reading.',
+  home: HOME,
+  steps: [
+    {
+      type: 'gesture',
+      title: 'The seat',
+      text: 'Take one posture and commit to it: cross-legged on the floor, or upright in a chair with the feet flat, hands on the knees, spine self-supporting. Choose now, because the rule is that nothing moves until the rite ends — no shifting, no scratching, no adjusting. Close the eyes. The body will begin to complain within a minute; that complaint is the first thing you are training.',
+    },
+    {
+      type: 'breath',
+      title: 'The measured breath',
+      text: 'Breathe with the pacer through the nose: in for four, held for four, out for eight. Count silently and let the count carry the breath rather than the other way round. Do not strain for depth — if you have to gasp at the turn, the measure is too long for tonight, and the discipline is to keep the count small and honest.',
+      cadence: [4, 4, 8, 0],
+      durationSec: 80,
+    },
+    {
+      type: 'meditation',
+      title: 'Dharana — the single point',
+      text: 'Now take one object and hold it. A point of light behind the brow, or the syllable of a single word, or the small flame at the centre of the breast — choose one, and do not change it once chosen. Keep it steady, unmoving, and alone. Nothing else is permitted in the field: no commentary on how the meditation is going, no plans, no memories, no pride at having managed nine seconds.',
+      durationSec: 120,
+    },
+    {
+      type: 'meditation',
+      title: 'The count of the breaks',
+      text: 'Continue holding the point, and now begin to count. Every time you notice that attention has gone elsewhere, mark it — a stroke against the tally, no self-reproach, no story about the lapse — and return to the point at once. The noticing is not a failure; the noticing is the practice. Keep the running number, because it is the one thing you will write down.',
+      durationSec: 150,
+    },
+    {
+      type: 'gesture',
+      title: 'The record',
+      text: 'Give the sign of silence — the forefinger to the lips — and let the posture go slowly, unfolding rather than springing up. Then write the session down before you do anything else: the posture, the measure of the breath, the object you held, and the number of breaks. Record the number even when it is humiliating, especially when it is humiliating. Without the tally this was a pleasant sit; with it, it is an experiment.',
+    },
+  ],
+};
+
 export const THELEMIC_RITES: Ritual[] = [
   ...RESH_STATIONS.map(reshRite),
+  RITE_MEDITATION,
   RITE_TRUE_WILL,
   RITE_NUIT,
 ];
 
 /** The rites offered on the Thelema page, in the order they are listed. */
 export const THELEMA_RITE_INDEX: { id: string; blurb: string }[] = [
+  { id: 'rite-meditation', blurb: 'The foundation: posture, measured breath, and one point held. Daily if you can.' },
   { id: 'rite-true-will', blurb: 'A contemplative stripping-away, to be repeated until it converges.' },
   { id: 'rite-nuit', blurb: 'An adoration of the night sky. Outdoors if you can manage it.' },
 ];

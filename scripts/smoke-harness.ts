@@ -133,6 +133,21 @@ check('thelemic rites resolve through getRitual and carry a home', () => {
   return `${THELEMIC_RITES.length} rites`;
 });
 
+check('the meditation rite teaches asana, breath and dharana', () => {
+  const rite = getRitual('rite-meditation');
+  if (!rite) throw new Error('no meditation rite');
+  if (!getThelemaTopic('meditation')) throw new Error('no meditation leaf');
+  if (!rite.steps.some((s) => s.type === 'breath' && s.cadence))
+    throw new Error('no paced breath');
+  const held = rite.steps.filter((s) => s.type === 'meditation');
+  if (held.length < 2) throw new Error('expected a dharana and a count of the breaks');
+  for (const s of held) {
+    if (!s.durationSec) throw new Error(`${s.title}: meditation steps need a duration`);
+  }
+  if (!THELEMA_RITE_INDEX.some((e) => e.id === rite.id)) throw new Error('not listed on the page');
+  return `${rite.steps.length} steps`;
+});
+
 check('feasts: every entry is a real calendar day, and one is next', () => {
   for (const f of FEASTS) {
     if (f.month < 1 || f.month > 12) throw new Error(`${f.name}: bad month`);
@@ -324,9 +339,11 @@ mountView('about', createAboutView);
 mountView('thelema', createThelemaView);
 mountView('thelema(law)', createThelemaTopicView, { id: 'law' });
 mountView('thelema(abyss)', createThelemaTopicView, { id: 'abyss' });
+mountView('thelema(meditation)', createThelemaTopicView, { id: 'meditation' });
 mountView('thelema(unknown)', createThelemaTopicView, { id: 'nope' });
 mountView('ritual(rite-resh-ra)', createRitualView, { id: 'rite-resh-ra' });
 mountView('ritual(rite-true-will)', createRitualView, { id: 'rite-true-will' });
+mountView('ritual(rite-meditation)', createRitualView, { id: 'rite-meditation' });
 
 // --- Report ---------------------------------------------------------------
 let failed = 0;
